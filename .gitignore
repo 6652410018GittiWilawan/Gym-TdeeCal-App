@@ -1,0 +1,11 @@
+# ไฟล์ที่ Next.js สร้าง (ตัวการ 10,000 ไฟล์)
+/.next/
+/out/
+/build/
+
+# ไฟล์ความลับ (ห้ามส่งขึ้น GitHub เด็ดขาด)
+.env.local
+.env.*.local
+
+# ไฟล์ที่ npm/yarn สร้าง
+node_modules

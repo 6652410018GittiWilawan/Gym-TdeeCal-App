@@ -1,40 +1,22 @@
 "use client";
-//อันนี้ทำอันสุดท้ายเพราะต้องเอาหลายๆข้อมูลมารวมกัน
 import React, { useState, useEffect } from 'react';
-// --- เพิ่ม import สำหรับกราฟ ---
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from 'recharts'; // ใช้ recharts สำหรับกราฟ npm install recharts
+import { createClient } from '@supabase/supabase-js'; 
+// --- 1. เพิ่ม Import สำหรับกราฟ (Recharts) ---
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from 'recharts';
 
-// --- Database Connection ---
-// คุณอาจจะต้อง import supabase client ของคุณที่นี่
-// ตัวอย่าง: import { supabase } from '@/utils/supabaseClient';
-// ---
+// --- (ตัวอย่าง) สร้าง Client ---
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// --- จบตัวอย่าง ---
 
-// Interface สำหรับข้อมูล Progress กราฟ 5 เหลี่ยม
-interface SkillProgress {
-  subject: string;
-  value: number; // ค่าพลัง (เช่น 1-100)
-}
 
-// Interface สำหรับข้อมูล Program
-interface ProgramItem {
-  exercise: string;
-  sets: number;
-  reps: string;
-  weight: number; // <--- เพิ่มน้ำหนัก (Weight)
-}
-
-// Interface สำหรับข้อมูลผู้ใช้ (เพื่อให้ Type ปลอดภัย)
+// --- Interface (เหมือนเดิม) ---
+// เราดึงแค่ 3 อย่างนี้จาก DB
 interface UserProfile {
-  name: string;
-  age: number;
+  full_name: string;
   gender: string;
-  tdee: number;
-  progress: string; 
-  profilePicUrl: string; 
-  mealPerDay: { foodName: string; calories: number; }[];
-  // --- อันนี้ใส่Database nakub ---
-  program: ProgramItem[]; // <--- อัปเดต Interface
-  skillProgress: SkillProgress[]; 
+  profile_pic_url: string; 
 }
 
 export default function Dashboard() {
@@ -42,60 +24,45 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // --- useEffect (เหมือนเดิมทุกประการ) ---
   useEffect(() => {
-    // --- อันนี้ใส่Database nakub ---
-    // โหลดข้อมูลผู้ใช้จาก Database เมื่อ Component ถูก Render ครั้งแรก
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
         setError('');
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-        // จำลองการดึงข้อมูล (เพื่อแสดง UI)
-        await new Promise(resolve => setTimeout(resolve, 1500)); // จำลองเวลาโหลด
-        const mockData: UserProfile = {
-          name: "สมศักดิ์",
-          age: 28,
-          gender: "ชาย",
-          tdee: 2200, 
-          progress: "ลดไขมัน 5kg",
-          profilePicUrl: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Pic",
-          mealPerDay: [
-            { foodName: "อกไก่ย่าง", calories: 300 },
-            { foodName: "ข้าวกล้อง", calories: 200 },
-            { foodName: "สลัดผัก", calories: 150 },
-            { foodName: "เวย์โปรตีน", calories: 120 },
-            { foodName: "ไข่ต้ม 2 ฟอง", calories: 140 },
-            { foodName: "ปลาซาบะย่าง", calories: 250 },
-          ],
-          // --- อันนี้ใส่Database nakub --- (ข้อมูล Program จำลอง อัปเดตแล้ว)
-          program: [
-            { exercise: "Bench Press", sets: 3, reps: "8-12", weight: 60 },
-            { exercise: "Squat", sets: 3, reps: "10-15", weight: 80 },
-            { exercise: "Deadlift", sets: 1, reps: "5", weight: 100 },
-            { exercise: "Lat Pulldown", sets: 3, reps: "10-12", weight: 40 },
-          ],
-          // --- อันนี้ใส่Database nakub --- (ข้อมูลกราฟ 5 เหลี่ยมจำลอง)
-          skillProgress: [
-            { subject: "Strength", value: 80 },
-            { subject: "Endurance", value: 65 },
-            { subject: "Mobility", value: 70 },
-            { subject: "Consistency", value: 90 },
-            { subject: "Nutrition", value: 75 },
-          ]
-        };
-        setUserProfile(mockData);
+        if (authError || !user) {
+          throw new Error(authError?.message || "ไม่พบผู้ใช้งาน กรุณาล็อกอิน");
+        }
+
+        const { data, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, gender, profile_pic_url') 
+          .eq('id', user.id)
+          .maybeSingle(); 
+
+        if (profileError) {
+          throw new Error(profileError.message);
+        }
+
+        if (data) {
+          setUserProfile(data);
+        } 
+        // ถ้าไม่เจอ data (เป็น null) UI จะแสดง "ไม่พบข้อมูลผู้ใช้" (ถูกต้องแล้ว)
 
       } catch (err: any) {
         console.error("Error fetching user profile:", err.message);
-        setError("ไม่สามารถโหลดข้อมูลโปรไฟล์ได้");
+        setError("ไม่สามารถโหลดข้อมูลโปรไฟล์ได้: " + err.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, []); // Run only once on component mount
+  }, []); 
 
+  // --- Loading, Error, !userProfile (เหมือนเดิม) ---
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-blue-400 text-xl">
@@ -116,17 +83,14 @@ export default function Dashboard() {
   if (!userProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-400 text-xl">
-        ไม่พบข้อมูลผู้ใช้
+        ไม่พบข้อมูลผู้ใช้ 
       </div>
     );
   }
 
-  // --- คำนวณแคลอรี่รวม ---
-  const totalCalories = userProfile.mealPerDay.reduce((sum, meal) => sum + meal.calories, 0);
-
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* Header - ด้านบนสุด (เหมือนเดิม) */}
+      {/* Header (เหมือนเดิม) */}
       <header className="bg-gray-900 p-4 shadow-lg flex justify-end items-center">
         <nav className="flex space-x-4">
           <a href="/Tdeecal" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold">Tdee calculator</a>
@@ -136,51 +100,51 @@ export default function Dashboard() {
         </nav>
       </header>
 
-      {/* Main Content Area - แบ่งเป็น Sidebar และ Main Panel */}
+      {/* Main Content Area - (เหมือนเดิม) */}
       <div className="flex flex-1 overflow-hidden">
         
-        {/* Sidebar - ด้านซ้าย (ข้อมูลผู้ใช้ + กราฟ) */}
+        {/* === 2. Sidebar (ซ้าย) - เพิ่มข้อมูล placeholder === */}
         <aside className="w-80 bg-gray-900 p-6 shadow-xl flex flex-col space-y-6">
-          {/* รูปโปรไฟล์ */}
+          {/* รูปโปรไฟล์ (ดึงข้อมูลจริง) */}
           <div className="flex flex-col items-center space-y-4">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
-              <img src={userProfile.profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+              <img src={userProfile.profile_pic_url} alt="Profile" className="w-full h-full object-cover" />
             </div>
-            <h2 className="text-2xl font-bold text-white">{userProfile.name}</h2>
+            <h2 className="text-2xl font-bold text-white">{userProfile.full_name}</h2>
           </div>
 
-          {/* ข้อมูลผู้ใช้ */}
+          {/* ข้อมูลผู้ใช้ (ดึงข้อมูลจริง + placeholder) */}
           <div className="space-y-3">
-            <div className="flex justify-between items-center text-gray-300 text-lg">
-              <span className="font-semibold">Age:</span>
-              <span>{userProfile.age}</span>
-            </div>
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Gender:</span>
               <span>{userProfile.gender}</span>
             </div>
+            {/* --- เพิ่มส่วนนี้กลับมา แต่ใช้ค่า placeholder --- */}
+            <div className="flex justify-between items-center text-gray-300 text-lg">
+              <span className="font-semibold">Age:</span>
+              <span>-</span>
+            </div>
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Tdee:</span>
-              <span className="text-blue-400">{userProfile.tdee} kcal</span>
+              <span className="text-blue-400">- kcal</span>
             </div>
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Progress:</span>
-              <span className="text-green-400">{userProfile.progress}</span>
+              <span className="text-green-400">-</span>
             </div>
+            {/* --- สิ้นสุดส่วน placeholder --- */}
           </div>
           
-          {/* --- กราฟ 5 เหลี่ยม (Radar Chart) --- */}
+          {/* --- กราฟ 5 เหลี่ยม (Radar Chart) - เพิ่มกลับมา --- */}
           <div className="mt-6 border-t border-gray-700 pt-6 flex-1">
             <h3 className="text-xl font-bold text-white mb-4 text-center">Your Progress</h3>
-            {/* --- อันนี้ใส่Database nakub --- */}
-            {/* ข้อมูล 'skillProgress' ด้านล่างนี้ จะถูกดึงและคำนวณมาจาก Database */}
             <div className="w-full h-64"> 
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart 
                   cx="50%" 
                   cy="50%" 
                   outerRadius="80%" 
-                  data={userProfile.skillProgress}
+                  data={[]} // <--- ใช้ข้อมูลว่าง
                 >
                   <PolarGrid stroke="#4B5563" /> 
                   <PolarAngleAxis 
@@ -189,7 +153,7 @@ export default function Dashboard() {
                   />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                   <Radar 
-                    name={userProfile.name} 
+                    name="Progress" 
                     dataKey="value" 
                     stroke="#3B82F6" 
                     fill="#3B82F6" 
@@ -201,7 +165,7 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* Main Panel - (ถูกแบ่งเป็น 2 ส่วนย่อย: Program และ MealPerDay) */}
+        {/* === 3. Main Panel (กลาง) - เพิ่มตารางกลับมา === */}
         <main className="flex-1 flex overflow-hidden">
           
           {/* ส่วน Program (ตรงกลาง) */}
@@ -209,58 +173,43 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold mb-6 text-white">Your Program</h1>
             <div className="bg-gray-900 p-6 rounded-lg shadow-inner border border-gray-800 min-h-[70vh] space-y-4">
               
-              {/* --- อันนี้ใส่Database nakub --- */}
-              {/* ข้อมูล Program ด้านล่างนี้จะถูกดึงมาจาก Database ของผู้ใช้ */}
-              
-              {/* --- ส่วนหัวตาราง (เพิ่มใหม่) --- */}
+              {/* --- ส่วนหัวตาราง (มีแค่หัว) --- */}
               <div className="grid grid-cols-3 gap-4 px-4 py-2 text-gray-400 font-semibold border-b border-gray-700">
                 <span className="col-span-1">Exercise</span>
                 <span className="col-span-1 text-center">Weight</span>
                 <span className="col-span-1 text-right">Sets x Reps</span>
               </div>
 
-              {/* --- รายการท่าออกกำลังกาย (อัปเดตแล้ว) --- */}
-              {userProfile.program.map((item, index) => (
-                <div key={index} className="bg-gray-800 p-4 rounded-md grid grid-cols-3 items-center gap-4">
-                  {/* Column 1: Exercise Name */}
-                  <span className="text-lg text-white font-semibold col-span-1">{item.exercise}</span>
-                  
-                  {/* Column 2: Weight */}
-                  <span className="text-lg text-blue-300 text-center font-medium col-span-1">
-                    {item.weight} kg
-                  </span>
-
-                  {/* Column 3: Sets x Reps */}
-                  <span className="text-lg text-gray-300 text-right col-span-1">
-                    {item.sets} sets x {item.reps} reps
-                  </span>
-                </div>
-              ))}
+              {/* --- รายการท่าออกกำลังกาย (ว่าง) --- */}
+              <div className="text-center text-gray-500 pt-10">
+                (ยังไม่มีโปรแกรมที่บันทึกไว้)
+              </div>
+              {/* เราจะวน loop ข้อมูลจริงตรงนี้ในอนาคต */}
+              
             </div>
           </div>
 
-          {/* ส่วน Meal Per Day (ขวาสุด) - ย้ายมาจาก Sidebar */}
+          {/* === 4. Meal Per Day (ขวา) - เพิ่มกลับมา === */}
           <aside className="w-80 bg-gray-900 p-6 shadow-xl flex flex-col space-y-6 overflow-hidden">
             <div className="flex flex-col flex-1 min-h-0">
               <h3 className="text-xl font-bold text-white mb-4">Meal Per Day</h3>
               
               {/* พื้นที่เลื่อนได้ */}
               <div className="flex-1 space-y-2 overflow-y-auto pr-2">
-                {/* --- อันนี้ใส่Database nakub --- */}
-                {/* ข้อมูลมื้ออาหารนี้ (mealPerDay) จะถูกดึงมาจากตาราง 'foods' หรือ 'meals' ที่ผู้ใช้บันทึก (จากหน้า Add Food) */}
-                {userProfile.mealPerDay.map((meal, index) => (
-                  <div key={index} className="bg-gray-800 p-3 rounded-md flex justify-between items-center">
-                    <span className="text-gray-200">{meal.foodName}</span>
-                    <span className="text-blue-300 font-medium">{meal.calories} kcal</span>
-                  </div>
-                ))}
+                
+                {/* --- รายการอาหาร (ว่าง) --- */}
+                <div className="text-center text-gray-500 pt-10">
+                  (ยังไม่มีข้อมูลอาหารสำหรับวันนี้)
+                </div>
+                {/* เราจะวน loop ข้อมูลจริงตรงนี้ในอนาคต */}
+
               </div>
 
-              {/* Total Calories */}
+              {/* Total Calories (แสดง 0) */}
               <div className="mt-4 pt-4 border-t border-gray-700">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total:</span>
-                  <span className="text-blue-400">{totalCalories} kcal</span>
+                  <span className="text-blue-400">0 kcal</span>
                 </div>
               </div>
             </div>
@@ -271,4 +220,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
