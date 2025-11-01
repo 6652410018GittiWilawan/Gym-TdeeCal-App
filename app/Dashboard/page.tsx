@@ -3,16 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js'; 
 // --- 1. เพิ่ม Import สำหรับกราฟ (Recharts) ---
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PolarRadiusAxis } from 'recharts';
+import { supabase } from '@/lib/supabaseClient';
 
-// --- (ตัวอย่าง) สร้าง Client ---
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-// --- จบตัวอย่าง ---
-
-
-// --- Interface (เหมือนเดิม) ---
-// เราดึงแค่ 3 อย่างนี้จาก DB
+//มีแค่นี้เดี๋ยวค่อยเพิ่ม
 interface UserProfile {
   full_name: string;
   gender: string;
@@ -24,7 +17,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // --- useEffect (เหมือนเดิมทุกประการ) ---
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -49,7 +41,7 @@ export default function Dashboard() {
         if (data) {
           setUserProfile(data);
         } 
-        // ถ้าไม่เจอ data (เป็น null) UI จะแสดง "ไม่พบข้อมูลผู้ใช้" (ถูกต้องแล้ว)
+        // ถ้าไม่เจอ data (เป็น null) UI จะแสดง "ไม่พบข้อมูลผู้ใช้"
 
       } catch (err: any) {
         console.error("Error fetching user profile:", err.message);
@@ -62,7 +54,7 @@ export default function Dashboard() {
     fetchUserProfile();
   }, []); 
 
-  // --- Loading, Error, !userProfile (เหมือนเดิม) ---
+  // --- Loading, Error, !userProfile
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-blue-400 text-xl">
@@ -90,7 +82,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* Header (เหมือนเดิม) */}
+      {/* Header */}
       <header className="bg-gray-900 p-4 shadow-lg flex justify-end items-center">
         <nav className="flex space-x-4">
           <a href="/Tdeecal" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold">Tdee calculator</a>
@@ -100,7 +92,7 @@ export default function Dashboard() {
         </nav>
       </header>
 
-      {/* Main Content Area - (เหมือนเดิม) */}
+      {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         
         {/* === 2. Sidebar (ซ้าย) - เพิ่มข้อมูล placeholder === */}
@@ -119,7 +111,6 @@ export default function Dashboard() {
               <span className="font-semibold">Gender:</span>
               <span>{userProfile.gender}</span>
             </div>
-            {/* --- เพิ่มส่วนนี้กลับมา แต่ใช้ค่า placeholder --- */}
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Age:</span>
               <span>-</span>
@@ -132,10 +123,9 @@ export default function Dashboard() {
               <span className="font-semibold">Progress:</span>
               <span className="text-green-400">-</span>
             </div>
-            {/* --- สิ้นสุดส่วน placeholder --- */}
           </div>
           
-          {/* --- กราฟ 5 เหลี่ยม (Radar Chart) - เพิ่มกลับมา --- */}
+          {/* --- กราฟ 5 เหลี่ยม (Radar Chart)  --- */}
           <div className="mt-6 border-t border-gray-700 pt-6 flex-1">
             <h3 className="text-xl font-bold text-white mb-4 text-center">Your Progress</h3>
             <div className="w-full h-64"> 
@@ -165,7 +155,7 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        {/* === 3. Main Panel (กลาง) - เพิ่มตารางกลับมา === */}
+        {/* === 3. Main Panel (กลาง)  === */}
         <main className="flex-1 flex overflow-hidden">
           
           {/* ส่วน Program (ตรงกลาง) */}

@@ -59,7 +59,7 @@ export default function Register() {
 
         // อัปโหลดรูปภาพไปยัง Supabase Storage ชื่อ bucket "user_avatars"
         const { error: uploadError } = await supabase.storage
-          .from("user_avatars") // ⚠️ ตรวจสอบว่าชื่อ bucket นี้ถูกต้อง
+          .from("user_avatars") //  ตรวจสอบว่าชื่อ bucket นี้ถูกต้อง
           .upload(new_image_file_name, image_file);
         
         if (uploadError) {
