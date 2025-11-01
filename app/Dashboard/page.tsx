@@ -10,6 +10,10 @@ interface UserProfile {
   full_name: string;
   gender: string;
   profile_pic_url: string; 
+  age: number; 
+  tdee: number;
+  user_weight: number;
+  user_height: number;
 }
 
 export default function Dashboard() {
@@ -30,7 +34,7 @@ export default function Dashboard() {
 
         const { data, error: profileError } = await supabase
           .from('profiles')
-          .select('full_name, gender, profile_pic_url') 
+          .select('full_name, gender, profile_pic_url, age, tdee, user_weight, user_height') 
           .eq('id', user.id)
           .maybeSingle(); 
 
@@ -41,6 +45,7 @@ export default function Dashboard() {
         if (data) {
           setUserProfile(data);
         } 
+        //ถ้ายังไม่มีข้อมูลให้แสดง -
         // ถ้าไม่เจอ data (เป็น null) UI จะแสดง "ไม่พบข้อมูลผู้ใช้"
 
       } catch (err: any) {
@@ -113,11 +118,19 @@ export default function Dashboard() {
             </div>
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Age:</span>
-              <span>-</span>
+              <span>{userProfile.age}</span>
+            </div>
+            <div className="flex justify-between items-center text-gray-300 text-lg">
+              <span className="font-semibold">weight:</span>
+              <span>{userProfile.user_weight} kg</span>
+            </div>
+            <div className="flex justify-between items-center text-gray-300 text-lg">
+              <span className="font-semibold">height:</span>
+              <span>{userProfile.user_height} cm</span>
             </div>
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Tdee:</span>
-              <span className="text-blue-400">- kcal</span>
+              <span className="text-blue-400">{userProfile.tdee} kcal</span>
             </div>
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Progress:</span>
