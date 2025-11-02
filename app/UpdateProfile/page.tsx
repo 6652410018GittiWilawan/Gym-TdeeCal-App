@@ -181,7 +181,7 @@ export default function UpdateProfile() {
       <div className="relative z-10 w-full max-w-md bg-gray-900/50 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-xl p-8">
         
         <h1 className="text-4xl font-bold text-center text-white mb-8">
-          Update Profile
+          Update <span className='text-blue-500'>Profile</span>
         </h1>
         
         {loading && (
@@ -308,7 +308,7 @@ export default function UpdateProfile() {
                   <option value="level-0">ไม่ออกเลย</option>
                   <option value="level-1">ออกเบา 1-2 วัน/สัปดาห์</option>
                   <option value="level-2">ปานกลาง 3-4 วัน/สัปดาห์</option>
-                  <option value="level-3">ออกหนัก 4-6 วัน/สัปดาห์</option>
+                  <option value="level-3">ออกหนัก 5-7 วัน/สัปดาห์</option>
                 </select>
               </div>
             </div>

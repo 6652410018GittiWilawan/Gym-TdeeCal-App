@@ -202,7 +202,7 @@ export default function Register() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-300 mb-2"
             >
-              รหัสผ่าน
+              รหัสผ่าน (6 ตัวอักษรขึ้นไป)
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
