@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
-// [เพิ่ม] Import Supabase Client
-import { supabase } from '../../lib/supabaseClient'; // ⚠️ ตรวจสอบว่า Path นี้ถูกต้องนะครับ
+import { supabase } from '../../lib/supabaseClient'; // ⚠️ ตรวจสอบว่า Path นี้ถูกต้อง
 
 export default function Login() {
   // ใช้ State เพื่อเก็บค่า email และ password (เหมือนเดิม)
@@ -39,7 +38,7 @@ export default function Login() {
         alert("เข้าสู่ระบบสำเร็จ!");
         
         // พาไปหน้าหลักหลังล็อกอิน
-        window.location.href = '/Dashboard'; // <--- พาไปหน้าหลัก
+        window.location.href = '/UpdateProfile'; // <--- พาไปหน้าหลัก
       } else {
         // กันเหนียว กรณีที่ไม่น่าจะเกิดขึ้น
         throw new Error("ไม่พบข้อมูลผู้ใช้หลังการล็อกอิน");

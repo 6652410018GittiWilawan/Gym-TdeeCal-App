@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 // Import component ของ Recharts สำหรับทำกราฟ
@@ -16,6 +17,10 @@ interface UserProfile {
   tdee: number;
   user_weight: number;
   user_height: number;
+  // [เพิ่ม] เพิ่ม 3 ฟิลด์สำหรับสารอาหาร
+  carb_g: number;
+  protein_g: number;
+  fat_g: number;
 }
 
 //กำหนด type สำหรับข้อมูลอาหาร
@@ -52,7 +57,10 @@ export default function Dashboard() {
           // ดึง Profile
           supabase
             .from('profiles')
-            .select('full_name, gender, profile_pic_url, age, tdee, user_weight, user_height')
+            .select(
+              // [แก้ไข] เพิ่ม carb_g, protein_g, fat_g
+              'full_name, gender, profile_pic_url, age, tdee, user_weight, user_height, carb_g, protein_g, fat_g'
+            )
             .eq('id', user.id)
             .maybeSingle(),
             
@@ -160,7 +168,7 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold text-white">{userProfile.full_name}</h2>
           </div>
 
-          {/* แสดงข้อมูลผู้ใช้ (เหมือนเดิม) */}
+          {/* แสดงข้อมูลผู้ใช้  */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Gender:</span>
@@ -178,10 +186,27 @@ export default function Dashboard() {
               <span className="font-semibold">height:</span>
               <span>{userProfile.user_height} cm</span>
             </div>
+            {/* แสดง TDEE */}
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Tdee:</span>
               <span className="text-blue-400">{userProfile.tdee} kcal</span>
             </div>
+            
+            {/* [แก้ไข] แสดงสารอาหาร */}
+            <div className="flex justify-between items-center text-gray-300 text-lg">
+              <span className="font-semibold">Protein:</span>
+              <span className="text-green-400">{userProfile.protein_g} g</span>
+            </div>
+            <div className="flex justify-between items-center text-gray-300 text-lg">
+              <span className="font-semibold">Carbs:</span>
+              <span className="text-orange-400">{userProfile.carb_g} g</span>
+            </div>
+            <div className="flex justify-between items-center text-gray-300 text-lg">
+              <span className="font-semibold">Fat:</span>
+              <span className="text-yellow-400">{userProfile.fat_g} g</span>
+            </div>
+        
+            {/* แสดง Progress */}
             <div className="flex justify-between items-center text-gray-300 text-lg">
               <span className="font-semibold">Progress:</span>
               <span className="text-green-400">-</span>
@@ -197,7 +222,7 @@ export default function Dashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius="80%"
-                  data={[]} 
+                  data={[]}
                 >
                   <PolarGrid stroke="#4B5563" />
                   <PolarAngleAxis
@@ -252,8 +277,8 @@ export default function Dashboard() {
                 {/* ส่วนวน Loop ข้อมูลอาหาร */}
                 {foodLogs.length > 0 ? (
                   foodLogs.map((food) => (
-                    <div 
-                      key={food.id} 
+                    <div
+                      key={food.id}
                       className="bg-gray-800 p-3 rounded-md flex justify-between items-center shadow"
                     >
                       <span className="text-gray-200 truncate" title={food.food_name}>
