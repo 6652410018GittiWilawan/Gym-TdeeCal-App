@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import localFont from "next/font/local"
+import { Kanit } from "next/font/google";
 
-//Font ที่ กิตติ อยากใช้ 
-const MNIceCreamVanillaItalic = localFont({
-  src: "./fonts/MN Ice Cream Vanilla Italic.ttf",
-  variable: '--font-ice-cream-italic',
+//Font Kanit
+const kanit = Kanit({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin', 'thai'],
+  variable: '--font-kanit',
 });
 
 
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${MNIceCreamVanillaItalic.className}`}
+        className={`${kanit.variable} font-sans`}
       >
         {children}
       </body>

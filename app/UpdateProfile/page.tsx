@@ -45,9 +45,9 @@ export default function UpdateProfile() {
     const [tdee, setTdee] = useState<number | null>(null);
     // เพิ่ม State สำหรับ Macros
     const [macros, setMacros] = useState<Macros>({ carb: null, protein: null, fat: null }); 
-    const [carbRatio, setCarbRatio] = useState(45); // Default 45%
-    const [proteinRatio, setProteinRatio] = useState(30); // Default 30%
-    const [fatRatio, setFatRatio] = useState(25); // Default 25%
+    const [carbRatio, setCarbRatio] = useState(0); // Default 45%
+    const [proteinRatio, setProteinRatio] = useState(0); // Default 30%
+    const [fatRatio, setFatRatio] = useState(0); // Default 25%
     const [totalRatio, setTotalRatio] = useState(100); // State สำหรับผลรวม
 
     // --- Activity Multipliers (ตัวคูณระดับกิจกรรม) ---
