@@ -1,7 +1,7 @@
 import React from 'react';
 // Import ไอคอนจาก lucide-react สำหรับการใช้งานในส่วนต่างๆ ของหน้าเว็บ
 import { Dumbbell, Calendar, HandFist , Mail, Target, HeartPulse } from 'lucide-react';  //npm install lucide-react อันนี้ดีถามGPT มา เว็บIconต่างๆชื่อ lucide.dev ของดี อย่าลืม import ก่อนเอามาใช้้
-import hopic from '@/images/hopic.png'
+import hopic from './Images/hopic.png'
 import Image from 'next/image'
 
 //  1. Navbar Component โหดๆ ตอนแรกไม่รู้จะใส่อะไรแต่คิดว่าปกติเว็บเรามันเป็นแนวจัดโปรแกรมเองมากกว่า 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+// ไม่ต้องใช้ recharts แล้ว ใช้แสดงตัวเลขแทน
 import { supabase } from '@/lib/supabaseClient';
 import { Dumbbell, XCircle, PlusCircle, Search, Calendar } from 'lucide-react';
 
@@ -75,6 +75,39 @@ const getDayOfWeek = (date: Date): number => {
   return day === 0 ? 7 : day;
 };
 
+// Helper function: หา muscle group จาก exercise name (ใช้ข้อมูลจาก program_items หรือ fallback ไปที่ exercise list)
+const getMuscleGroupFromExercise = (exerciseName: string, allProgramItems?: Array<{exercise_name: string, muscle_group: string}>): string | null => {
+  // ถ้ามีข้อมูลจาก program_items ให้ใช้ก่อน
+  if (allProgramItems && allProgramItems.length > 0) {
+    const found = allProgramItems.find(item => 
+      item.exercise_name.toLowerCase() === exerciseName.toLowerCase()
+    );
+    if (found) return found.muscle_group;
+  }
+
+  // Fallback: ใช้ exercise list
+  const exerciseLists: Record<string, string[]> = {
+    chest: ['Bench Press', 'Incline Dumbbell Press', 'Dips', 'Cable Fly', 'Dumbbell Fly', 'Push Up', 'Incline Bench Press', 'Incline Press', 'Dumbbell Bench Press'],
+    back: ['Deadlift', 'Bent Over Row', 'T-Bar Row', 'Seated Cable Row', 'T-bar row'],
+    lats: ['Lat Pulldown', 'Pull Up', 'Chin Up', 'Straight Arm Pulldown', 'Dumbbell Row', 'Lat Pull Down', 'One Arm Dumbbell Row', 'Wide Grip Lat Pull Down'],
+    shoulders: ['Overhead Press', 'Lateral Raise', 'Front Raise', 'Face Pull', 'Arnold Press', 'Seated Dumbbell Press', 'Machine Shoulder Press', 'Cable Lateral Raise', 'Shoulder Press'],
+    quads: ['Squat', 'Leg Press', 'Lunge', 'Leg Extension', 'Goblet Squat', 'Front Squat', 'Leg Extensions', 'Leg Lunge', 'Leg Extension'],
+    hamstrings: ['Romanian Deadlift', 'Lying Leg Curl', 'Seated Leg Curl', 'Good Morning', 'RDL', 'Leg Curls', 'Leg Curl'],
+    glutes: ['Hip Thrust', 'Glute Bridge', 'Bulgarian Split Squat'],
+    calves: ['Calf Raise (Standing)', 'Calf Raise (Seated)', 'Seated Calf Raise', 'Standing Calf Raise', 'Calves Raise Seated'],
+    biceps: ['Bicep Curl', 'Hammer Curl', 'Incline Dumbbell Curl', 'Preacher Curl', 'Wide Grip Bicep Curl'],
+    triceps: ['Tricep Pushdown', 'Skullcrusher', 'Close Grip Bench Press', 'Overhead Extension', 'Dips', 'Weighted Dips', 'Tricep extension'],
+  };
+
+  const lowerCaseName = exerciseName.toLowerCase();
+  for (const [group, exercises] of Object.entries(exerciseLists)) {
+    if (exercises.some(ex => lowerCaseName.includes(ex.toLowerCase()))) {
+      return group;
+    }
+  }
+  return null;
+};
+
 export default function Dashboard() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
@@ -86,6 +119,7 @@ export default function Dashboard() {
 
   // [ใหม่] State สำหรับ Program
   const [programItems, setProgramItems] = useState<ProgramItem[]>([]);
+  const [allProgramItems, setAllProgramItems] = useState<Array<{exercise_name: string, muscle_group: string}>>([]);
   
   // [ใหม่] State สำหรับ Day Selector
   const [selectedDay, setSelectedDay] = useState<number>(() => {
@@ -306,7 +340,7 @@ export default function Dashboard() {
       setEditingExercise(null);
       
       // Refresh data
-      const [progressDataNew, profileDataNew, programDataNew] = await Promise.all([
+      const [progressDataNew, profileDataNew, programDataNew, allProgramDataNew] = await Promise.all([
         supabase
           .from('workout_progress')
           .select('*')
@@ -319,10 +353,14 @@ export default function Dashboard() {
           .maybeSingle(),
         supabase
           .from('program_items')
-          .select('id, exercise_name, weight_kg, sets, reps, day_of_week')
+          .select('id, exercise_name, weight_kg, sets, reps, day_of_week, muscle_group')
           .eq('user_id', user.id)
           .eq('day_of_week', selectedDay)
-          .order('id', { ascending: true })
+          .order('id', { ascending: true }),
+        supabase
+          .from('program_items')
+          .select('exercise_name, muscle_group')
+          .eq('user_id', user.id)
       ]);
 
       if (progressDataNew.data) {
@@ -364,6 +402,11 @@ export default function Dashboard() {
       if (programDataNew.data) {
         setProgramItems(programDataNew.data);
       }
+
+      // อัปเดต all program items
+      if (allProgramDataNew.data) {
+        setAllProgramItems(allProgramDataNew.data);
+      }
     } catch (err: unknown) {
       let errorMessage = "เกิดข้อผิดพลาดที่ไม่คาดคิด";
       if (err instanceof Error) {
@@ -402,8 +445,8 @@ export default function Dashboard() {
         }
 
 
-        // [อัปเดต] เพิ่ม programResponse และ progressResponse
-        const [profileResponse, foodResponse, programResponse, progressResponse] = await Promise.all([
+        // [อัปเดต] เพิ่ม programResponse, allProgramResponse และ progressResponse
+        const [profileResponse, foodResponse, programResponse, allProgramResponse, progressResponse] = await Promise.all([
           supabase
             .from('profiles')
             .select('full_name, gender, profile_pic_url, age, tdee, user_weight, user_height, carb_g, protein_g, fat_g')
@@ -420,10 +463,16 @@ export default function Dashboard() {
           // [ใหม่] ดึงข้อมูล Program ของวันที่เลือก
           supabase
             .from('program_items')
-            .select('id, exercise_name, weight_kg, sets, reps, day_of_week')
+            .select('id, exercise_name, weight_kg, sets, reps, day_of_week, muscle_group')
             .eq('user_id', user.id)
             .eq('day_of_week', selectedDay)
             .order('id', { ascending: true }),
+          
+          // [ใหม่] ดึงข้อมูล Program ทั้งหมดเพื่อหา muscle_group
+          supabase
+            .from('program_items')
+            .select('exercise_name, muscle_group')
+            .eq('user_id', user.id),
           
           // [ใหม่] ดึงข้อมูล Progress ทั้งหมด
           supabase
@@ -466,6 +515,13 @@ export default function Dashboard() {
         }
         if (programResponse.data) {
           setProgramItems(programResponse.data);
+        }
+
+        // [ใหม่] ประมวลผล All Program Items (สำหรับหา muscle_group)
+        if (allProgramResponse.error) {
+          console.error("All Program Error:", allProgramResponse.error.message);
+        } else if (allProgramResponse.data) {
+          setAllProgramItems(allProgramResponse.data);
         }
 
         // [ใหม่] ประมวลผล Progress
@@ -516,17 +572,21 @@ export default function Dashboard() {
     fetchDashboardData()
   }, [selectedDay]);
 
-  // [ใหม่] คำนวณ Progress Metrics สำหรับกราฟ (ต้องอยู่ก่อน early returns)
+  // [ใหม่] คำนวณ Progress Metrics (ต้องอยู่ก่อน early returns)
   const progressData = useMemo(() => {
     if (!workoutProgress.length || !userProfile) {
-      return [
-        { subject: 'Weight Loss', value: 0 },
-        { subject: 'Gain Strength', value: 0 },
-        { subject: 'Endurance', value: 0 },
-      ];
+      return {
+        weightLoss: 0,
+        weightGain: 0,
+        chestStrength: 0,
+        backStrength: 0,
+        shoulderStrength: 0,
+        legStrength: 0,
+        armStrength: 0,
+      };
     }
 
-    // คำนวณ Weight Loss: เปรียบเทียบน้ำหนักตัวแรกกับล่าสุด
+    // คำนวณ Weight Loss และ Weight Gain: เปรียบเทียบน้ำหนักตัวแรกกับล่าสุด
     const sortedByDate = [...workoutProgress].sort((a, b) => 
       new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime()
     );
@@ -536,73 +596,42 @@ export default function Dashboard() {
       .sort((a, b) => new Date(b.workout_date).getTime() - new Date(a.workout_date).getTime())[0]?.body_weight || userProfile.user_weight;
     
     const weightChange = firstWeight - lastWeight;
-    const weightLossScore = Math.min(100, Math.max(0, (weightChange / firstWeight) * 100 * 10)); // คะแนน 0-100
+    const weightLoss = weightChange > 0 ? Math.round(weightChange) : 0;
+    const weightGain = weightChange < 0 ? Math.round(Math.abs(weightChange)) : 0;
 
-    // คำนวณ Gain Strength: เปรียบเทียบน้ำหนักที่ยกเฉลี่ย
-    const strengthExercises = ['Bench Press', 'Squat', 'Deadlift', 'Press', 'Row'];
-    const strengthWorkouts = workoutProgress.filter(w => 
-      strengthExercises.some(ex => w.exercise_name.toLowerCase().includes(ex.toLowerCase()))
-    );
-    
-    if (strengthWorkouts.length === 0) {
-      return [
-        { subject: 'Weight Loss', value: Math.round(weightLossScore) },
-        { subject: 'Gain Strength', value: 0 },
-        { subject: 'Endurance', value: 0 },
-      ];
-    }
+    // คำนวณ Strength แต่ละส่วน: น้ำหนักรวมทั้งหมด (weight_kg * sets) และหาร 2
+    const calculateStrength = (muscleGroups: string[]): number => {
+      const relevantWorkouts = workoutProgress.filter(w => {
+        const group = getMuscleGroupFromExercise(w.exercise_name, allProgramItems);
+        return group && muscleGroups.includes(group);
+      });
+      
+      if (relevantWorkouts.length === 0) return 0;
+      
+      // คำนวณน้ำหนักรวมทั้งหมด (weight_kg * sets) และหาร 2
+      const totalWeight = relevantWorkouts.reduce((sum, w) => {
+        return sum + (w.weight_kg * w.sets);
+      }, 0);
+      
+      return Math.round(totalWeight / 2);
+    };
 
-    const sortedStrength = [...strengthWorkouts].sort((a, b) => 
-      new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime()
-    );
-    const firstWeek = sortedStrength.slice(0, Math.min(5, sortedStrength.length));
-    const lastWeek = sortedStrength.slice(-Math.min(5, sortedStrength.length));
-    
-    const firstAvgWeight = firstWeek.reduce((sum, w) => sum + w.weight_kg, 0) / firstWeek.length;
-    const lastAvgWeight = lastWeek.reduce((sum, w) => sum + w.weight_kg, 0) / lastWeek.length;
-    
-    const strengthGain = firstAvgWeight > 0 ? ((lastAvgWeight - firstAvgWeight) / firstAvgWeight) * 100 : 0;
-    const strengthScore = Math.min(100, Math.max(0, strengthGain * 2)); // คะแนน 0-100
+    const chestStrength = calculateStrength(['chest']);
+    const backStrength = calculateStrength(['back', 'lats']);
+    const shoulderStrength = calculateStrength(['shoulders']);
+    const legStrength = calculateStrength(['quads', 'hamstrings', 'glutes', 'calves']);
+    const armStrength = calculateStrength(['biceps', 'triceps']);
 
-    // คำนวณ Endurance: ดูจากจำนวน reps และ sets ที่เพิ่มขึ้น
-    const enduranceWorkouts = workoutProgress.filter(w => {
-      const reps = parseInt(w.reps.split('-')[0]) || 0;
-      return reps >= 10; // Endurance exercises usually have 10+ reps
-    });
-
-    if (enduranceWorkouts.length === 0) {
-      return [
-        { subject: 'Weight Loss', value: Math.round(weightLossScore) },
-        { subject: 'Gain Strength', value: Math.round(strengthScore) },
-        { subject: 'Endurance', value: 0 },
-      ];
-    }
-
-    const sortedEndurance = [...enduranceWorkouts].sort((a, b) => 
-      new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime()
-    );
-    const firstEndurance = sortedEndurance.slice(0, Math.min(5, sortedEndurance.length));
-    const lastEndurance = sortedEndurance.slice(-Math.min(5, sortedEndurance.length));
-    
-    const firstAvgVolume = firstEndurance.reduce((sum, w) => {
-      const reps = parseInt(w.reps.split('-')[0]) || 0;
-      return sum + (w.sets * reps);
-    }, 0) / firstEndurance.length;
-    
-    const lastAvgVolume = lastEndurance.reduce((sum, w) => {
-      const reps = parseInt(w.reps.split('-')[0]) || 0;
-      return sum + (w.sets * reps);
-    }, 0) / lastEndurance.length;
-    
-    const enduranceGain = firstAvgVolume > 0 ? ((lastAvgVolume - firstAvgVolume) / firstAvgVolume) * 100 : 0;
-    const enduranceScore = Math.min(100, Math.max(0, enduranceGain * 2)); // คะแนน 0-100
-
-    return [
-      { subject: 'Weight Loss', value: Math.round(weightLossScore) },
-      { subject: 'Gain Strength', value: Math.round(strengthScore) },
-      { subject: 'Endurance', value: Math.round(enduranceScore) },
-    ];
-  }, [workoutProgress, userProfile]);
+    return {
+      weightLoss,
+      weightGain,
+      chestStrength,
+      backStrength,
+      shoulderStrength,
+      legStrength,
+      armStrength,
+    };
+  }, [workoutProgress, userProfile, allProgramItems]);
 
   // ... (ส่วน Loading, Error) ...
   if (loading) {
@@ -753,61 +782,46 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ... (ส่วน Progress Chart) ... */}
+          {/* ... (ส่วน Progress) ... */}
           <div className="mt-6 border-t border-gray-700 pt-6 flex-1">
             <h3 className="text-xl font-bold text-white mb-2 text-center">Your Progress</h3>
             <p className="text-sm text-gray-400 text-center mb-4">(ข้อมูลทั้ง 7 วัน)</p>
-            <div className="w-full h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
-                  <XAxis 
-                    dataKey="subject" 
-                    tick={{ fill: '#D1D5DB', fontSize: 12, fontFamily: 'var(--font-kanit)' }}
-                    angle={-15}
-                    textAnchor="end"
-                    height={60}
-                  />
-                  <YAxis 
-                    domain={[0, 100]}
-                    tick={{ fill: '#9CA3AF', fontSize: 10 }}
-                    label={{ value: 'คะแนน', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1F2937', 
-                      border: '1px solid #4B5563',
-                      borderRadius: '8px',
-                      color: '#F3F4F6'
-                    }}
-                    labelStyle={{ color: '#9CA3AF' }}
-                    formatter={(value: number) => [`${value}%`, 'คะแนน']}
-                  />
-                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                    {progressData.map((entry, index) => {
-                      let color = '#3B82F6'; // default blue
-                      if (entry.subject === 'Weight Loss') color = '#10B981'; // green
-                      else if (entry.subject === 'Gain Strength') color = '#EF4444'; // red
-                      else if (entry.subject === 'Endurance') color = '#F59E0B'; // orange
-                      return <Cell key={`cell-${index}`} fill={color} />;
-                    })}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Legend */}
-            <div className="flex justify-center gap-6 mt-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500"></div>
-                <span className="text-gray-300">Weight Loss</span>
+            
+            <div className="space-y-4">
+              {/* Weight Loss & Weight Gain */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Weight Loss</div>
+                  <div className="text-2xl font-bold text-green-400">{progressData.weightLoss} kg</div>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Weight Gain</div>
+                  <div className="text-2xl font-bold text-blue-400">{progressData.weightGain} kg</div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500"></div>
-                <span className="text-gray-300">Gain Strength</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-orange-500"></div>
-                <span className="text-gray-300">Endurance</span>
+
+              {/* Strength Metrics */}
+              <div className="space-y-3">
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Chest Strength</div>
+                  <div className="text-2xl font-bold text-red-400">{progressData.chestStrength} kg</div>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Back Strength</div>
+                  <div className="text-2xl font-bold text-orange-400">{progressData.backStrength} kg</div>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Shoulder Strength</div>
+                  <div className="text-2xl font-bold text-yellow-400">{progressData.shoulderStrength} kg</div>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Leg Strength</div>
+                  <div className="text-2xl font-bold text-purple-400">{progressData.legStrength} kg</div>
+                </div>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Arm Strength</div>
+                  <div className="text-2xl font-bold text-pink-400">{progressData.armStrength} kg</div>
+                </div>
               </div>
             </div>
           </div>
