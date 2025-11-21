@@ -12,60 +12,112 @@ export default function Login() {
   const [error, setError] = useState(''); // สำหรับแสดงข้อผิดพลาด
   const [loading, setLoading] = useState(false); // สำหรับสถานะกำลังโหลด
 
+  // ตรวจสอบว่า Supabase client พร้อมใช้งานหรือไม่
+  React.useEffect(() => {
+    console.log("Login component mounted");
+    console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Missing");
+    console.log("Supabase Key:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Missing");
+    
+    // ทดสอบว่า Supabase client ทำงานได้หรือไม่
+    supabase.auth.getSession().then(({ data, error }) => {
+      console.log("Initial session check:", { hasSession: !!data.session, error });
+    }).catch((err) => {
+      console.error("Supabase client error:", err);
+    });
+  }, []);
+
   // [แก้ไข] ฟังก์ชันนี้ถูกเปลี่ยนเป็น async และเชื่อมต่อ Supabase
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); // ป้องกันหน้าเว็บโหลดใหม่
+    console.log("Login form submitted");
     setLoading(true);
     setError('');
 
     // --- [แก้ไข] เริ่มส่วนเชื่อมต่อ Supabase Database ---
     try {
+      console.log("Attempting to sign in with email:", email);
+      
       // ใช้ Supabase เพื่อล็อกอินด้วย email และ password
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
 
+      console.log("Auth response:", { authData, authError });
+
       // 1. ตรวจสอบว่ามี Error จากการ Auth หรือไม่
       if (authError) {  
+        console.error("Auth error:", authError);
         // ถ้ามี Error (เช่น ใส่รหัสผิด) ให้โยน Error ไปที่ catch
         throw new Error(authError.message);
       }
 
       // 2. ตรวจสอบว่าได้ข้อมูล User กลับมาหรือไม่
-      if (authData.user && authData.session) {
-        console.log("Login successful (Supabase)", authData.session);
-        
-        // ตรวจสอบ redirect parameter จาก URL (ถ้ามี) แต่ถ้าไม่มีให้ไปหน้า UpdateProfile
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect') || '/UpdateProfile';
-        
-        // Redirect ทันที (Supabase จะ save session ใน localStorage อัตโนมัติ)
-        // เมื่อ redirect ไปหน้าใหม่ Supabase จะอ่าน session จาก localStorage
-        console.log("Redirecting to:", redirectTo);
-        window.location.href = redirectTo;
-      } else {
-        // กันเหนียว กรณีที่ไม่น่าจะเกิดขึ้น
+      if (!authData) {
+        console.error("No authData returned");
+        throw new Error("ไม่พบข้อมูลการยืนยันตัวตน");
+      }
+
+      if (!authData.user) {
+        console.error("No user in authData");
         throw new Error("ไม่พบข้อมูลผู้ใช้หลังการล็อกอิน");
       }
 
+      if (!authData.session) {
+        console.error("No session in authData");
+        throw new Error("ไม่พบ session หลังการล็อกอิน");
+      }
+
+      console.log("Login successful (Supabase)", {
+        user: authData.user.id,
+        session: !!authData.session
+      });
+      
+      // ตรวจสอบ redirect parameter จาก URL (ถ้ามี) แต่ถ้าไม่มีให้ไปหน้า UpdateProfile
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirect') || '/UpdateProfile';
+      
+      console.log("Preparing to redirect to:", redirectTo);
+      
+      // รอสักครู่เพื่อให้ Supabase save session
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // ตรวจสอบว่า session ถูก save แล้วจริงๆ
+      const { data: { session: verifySession } } = await supabase.auth.getSession();
+      console.log("Session verification:", !!verifySession);
+      
+      if (!verifySession) {
+        console.error("Session not saved, retrying...");
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      // Redirect ทันที (Supabase จะ save session ใน localStorage อัตโนมัติ)
+      // เมื่อ redirect ไปหน้าใหม่ Supabase จะอ่าน session จาก localStorage
+      console.log("Redirecting to:", redirectTo);
+      window.location.href = redirectTo;
+
     } catch (err: unknown) {
+      console.error("Login Error caught:", err);
       let errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"; // ข้อความเริ่มต้น
 
       if (err instanceof Error) {
+        console.error("Error message:", err.message);
         // Supabase มักจะคืนค่า "Invalid login credentials"
         if (err.message.includes("Invalid login credentials")) {
           errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+        } else if (err.message.includes("Email not confirmed")) {
+          errorMessage = "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ";
         } else {
           errorMessage = err.message; // แสดง Error อื่นๆ ถ้ามี
         }
       }
       
-      console.error("Login Error:", errorMessage);
+      console.error("Final error message:", errorMessage);
       setError(errorMessage); // แสดง Error บนหน้าจอ
 
     } finally {
       setLoading(false); // หยุด Loading เสมอ
+      console.log("Login process finished");
     }
   };
 
