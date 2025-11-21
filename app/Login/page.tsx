@@ -3,17 +3,27 @@
 import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient'; // ⚠️ ตรวจสอบว่า Path นี้ถูกต้อง
 
 export default function Login() {
+  const router = useRouter();
   // ใช้ State เพื่อเก็บค่า email และ password (เหมือนเดิม)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(''); // สำหรับแสดงข้อผิดพลาด
   const [loading, setLoading] = useState(false); // สำหรับสถานะกำลังโหลด
 
+  // ใช้ useRef เพื่อป้องกันการ redirect ซ้ำๆ
+  const hasRedirected = React.useRef(false);
+
   // ตรวจสอบว่า Supabase client พร้อมใช้งานหรือไม่
   React.useEffect(() => {
+    // ถ้า redirect ไปแล้ว ไม่ต้องทำอะไร
+    if (hasRedirected.current) {
+      return;
+    }
+
     console.log("Login component mounted");
     console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Missing");
     console.log("Supabase Key:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Missing");
@@ -25,7 +35,7 @@ export default function Login() {
         console.log("Initial session check:", { hasSession: !!data.session, error });
         
         // ถ้ามี session อยู่แล้ว ให้ redirect ไป UpdateProfile ทันที
-        if (data.session && data.session.user) {
+        if (data.session && data.session.user && !hasRedirected.current) {
           console.log("Session exists, user:", data.session.user.email);
           
           // ตรวจสอบ redirect parameter จาก URL (ถ้ามี) แต่ถ้าไม่มีให้ไปหน้า UpdateProfile
@@ -34,11 +44,20 @@ export default function Login() {
           
           console.log("Redirecting to:", redirectTo);
           
-          // ใช้ window.location.replace เพื่อป้องกันการย้อนกลับ
-          // และใช้ setTimeout เพื่อให้แน่ใจว่า component render เสร็จก่อน
+          // ตั้ง flag เพื่อป้องกันการ redirect ซ้ำ
+          hasRedirected.current = true;
+          
+          // ใช้ router.push ก่อน แล้วถ้าไม่ทำงานค่อยใช้ window.location
+          console.log("Attempting redirect with router.push");
+          router.push(redirectTo);
+          
+          // Fallback: ถ้า router.push ไม่ทำงานภายใน 500ms ให้ใช้ window.location
           setTimeout(() => {
-            window.location.replace(redirectTo);
-          }, 100);
+            if (window.location.pathname === '/Login') {
+              console.log("Router.push didn't work, using window.location");
+              window.location.href = redirectTo;
+            }
+          }, 500);
         }
       } catch (err) {
         console.error("Supabase client error:", err);
@@ -46,7 +65,8 @@ export default function Login() {
     };
     
     checkSessionAndRedirect();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array เพื่อให้ทำงานแค่ครั้งเดียว (router ไม่จำเป็นต้องใส่ใน deps)
 
   // [แก้ไข] ฟังก์ชันนี้ถูกเปลี่ยนเป็น async และเชื่อมต่อ Supabase
   const handleSubmit = async (event: React.FormEvent) => {
