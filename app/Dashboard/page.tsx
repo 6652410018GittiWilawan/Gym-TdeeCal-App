@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 // ไม่ต้องใช้ recharts แล้ว ใช้แสดงตัวเลขแทน
 import { supabase } from '@/lib/supabaseClient';
 import { Dumbbell, XCircle, PlusCircle, Search, Calendar } from 'lucide-react';
+import Image from 'next/image';
 
 // กำหนด type สำหรับข้อมูลโปรไฟล์
 interface UserProfile {
@@ -669,56 +670,62 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* ... (ส่วน Header) ... */}
-      <header className="bg-gray-900 p-4 shadow-lg flex justify-between items-center">
-        <div >
+      <header className="bg-gray-900 p-2 sm:p-4 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+        <div>
           <a href="#" className="flex items-center space-x-2">
-            <Dumbbell className="h-8 w-8 text-blue-500" />
-            <span className="text-white text-2xl font-bold">SAU Gymbro</span>
+            <Dumbbell className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+            <span className="text-white text-xl sm:text-2xl font-bold">SAU Gymbro</span>
           </a>
         </div>
-        <nav className="flex space-x-4"> 
-          <a href="/Program" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold">Program</a>
-          <a href="/Addfood" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold">Add Food</a>
-          <a href="/UpdateProfile" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold">Update Profile</a>
+        <nav className="flex flex-wrap gap-2 sm:gap-4 justify-center"> 
+          <a href="/Program" className="py-1.5 px-2 sm:py-2 sm:px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold text-sm sm:text-base">Program</a>
+          <a href="/Addfood" className="py-1.5 px-2 sm:py-2 sm:px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold text-sm sm:text-base">Add Food</a>
+          <a href="/UpdateProfile" className="py-1.5 px-2 sm:py-2 sm:px-4 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors font-semibold text-sm sm:text-base">Update Profile</a>
         </nav>
       </header>
 
       {/* ส่วนเนื้อหาหลัก */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
         {/* ... (ส่วน Sidebar ซ้าย: Profile) ... */}
-        <aside className="w-80 bg-gray-900 p-6 shadow-xl flex flex-col space-y-6">
+        <aside className="w-full lg:w-80 bg-gray-900 p-4 sm:p-6 shadow-xl flex flex-col space-y-4 sm:space-y-6 max-h-[50vh] lg:max-h-none overflow-y-auto lg:overflow-y-auto">
           {/* ... (รูปโปรไฟล์และชื่อ) ... */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
-              <img src={userProfile.profile_pic_url} alt="Profile" className="w-full h-full object-cover" />
+          <div className="flex flex-col items-center space-y-2 sm:space-y-4">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg relative">
+              <Image 
+                src={userProfile.profile_pic_url} 
+                alt="Profile" 
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 96px, 128px"
+              />
             </div>
-            <h2 className="text-2xl font-bold text-white">{userProfile.full_name}</h2>
+            <h2 className="text-lg sm:text-2xl font-bold text-white text-center">{userProfile.full_name}</h2>
           </div>
 
           {/* ... (ข้อมูลผู้ใช้) ... */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Gender:</span>
               <span>{userProfile.gender}</span>
             </div>
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Age:</span>
               <span>{userProfile.age}</span>
             </div>
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">weight:</span>
               <span>{userProfile.user_weight} kg</span>
             </div>
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">height:</span>
               <span>{userProfile.user_height} cm</span>
             </div>
             
             {/* แสดง Tdee แบบ 3 บรรทัด */}
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Tdee:</span>
-              <div className="flex flex-col items-end text-sm">
+              <div className="flex flex-col items-end text-xs sm:text-sm">
                 <span className="text-blue-400">{userProfile.tdee} kcal (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalCalories.toFixed(0)} kcal</span>
                 <span className={remainingCalories >= 0 ? "text-blue-400" : "text-green-400"}>
@@ -731,9 +738,9 @@ export default function Dashboard() {
             </div>
             
             {/* Protein */}
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Protein:</span>
-              <div className="flex flex-col items-end text-sm">
+              <div className="flex flex-col items-end text-xs sm:text-sm">
                 <span className="text-red-500">{userProfile.protein_g} g (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalProtein.toFixed(0)} g</span>
                 <span className={remainingProtein >= 0 ? "text-red-500" : "text-green-400"}>
@@ -746,9 +753,9 @@ export default function Dashboard() {
             </div>
 
             {/* Carbs */}
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Carbs:</span>
-              <div className="flex flex-col items-end text-sm">
+              <div className="flex flex-col items-end text-xs sm:text-sm">
                 <span className="text-orange-400">{userProfile.carb_g} g (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalCarbs.toFixed(0)} g</span>
                 <span className={remainingCarbs >= 0 ? "text-orange-400" : "text-green-400"}>
@@ -761,9 +768,9 @@ export default function Dashboard() {
             </div>
 
             {/* Fat */}
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Fat:</span>
-              <div className="flex flex-col items-end text-sm">
+              <div className="flex flex-col items-end text-xs sm:text-sm">
                 <span className="text-yellow-400">{userProfile.fat_g} g (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalFat.toFixed(0)} g</span>
                 <span className={remainingFat >= 0 ? "text-yellow-400" : "text-green-400"}>
@@ -776,51 +783,51 @@ export default function Dashboard() {
             </div>
             
             {/* Progress */}
-            <div className="flex justify-between items-center text-gray-300 text-lg">
+            <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Progress:</span>
               <span className="text-green-400">-</span>
             </div>
           </div>
 
           {/* ... (ส่วน Progress) ... */}
-          <div className="mt-6 border-t border-gray-700 pt-6 flex-1">
-            <h3 className="text-xl font-bold text-white mb-2 text-center">Your Progress</h3>
-            <p className="text-sm text-gray-400 text-center mb-4">(ข้อมูลทั้ง 7 วัน)</p>
+          <div className="mt-4 sm:mt-6 border-t border-gray-700 pt-4 sm:pt-6 flex-1">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2 text-center">Your Progress</h3>
+            <p className="text-xs sm:text-sm text-gray-400 text-center mb-3 sm:mb-4">(ข้อมูลทั้ง 7 วัน)</p>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Weight Loss & Weight Gain */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Weight Loss</div>
-                  <div className="text-2xl font-bold text-green-400">{progressData.weightLoss} kg</div>
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Weight Loss</div>
+                  <div className="text-xl sm:text-2xl font-bold text-green-400">{progressData.weightLoss} kg</div>
                 </div>
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Weight Gain</div>
-                  <div className="text-2xl font-bold text-blue-400">{progressData.weightGain} kg</div>
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Weight Gain</div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-400">{progressData.weightGain} kg</div>
                 </div>
               </div>
 
               {/* Strength Metrics */}
-              <div className="space-y-3">
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Chest Strength</div>
-                  <div className="text-2xl font-bold text-red-400">{progressData.chestStrength} kg</div>
+              <div className="space-y-2 sm:space-y-3">
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Chest Strength</div>
+                  <div className="text-xl sm:text-2xl font-bold text-red-400">{progressData.chestStrength} kg</div>
                 </div>
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Back Strength</div>
-                  <div className="text-2xl font-bold text-orange-400">{progressData.backStrength} kg</div>
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Back Strength</div>
+                  <div className="text-xl sm:text-2xl font-bold text-orange-400">{progressData.backStrength} kg</div>
                 </div>
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Shoulder Strength</div>
-                  <div className="text-2xl font-bold text-yellow-400">{progressData.shoulderStrength} kg</div>
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Shoulder Strength</div>
+                  <div className="text-xl sm:text-2xl font-bold text-yellow-400">{progressData.shoulderStrength} kg</div>
                 </div>
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Leg Strength</div>
-                  <div className="text-2xl font-bold text-purple-400">{progressData.legStrength} kg</div>
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Leg Strength</div>
+                  <div className="text-xl sm:text-2xl font-bold text-purple-400">{progressData.legStrength} kg</div>
                 </div>
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">Arm Strength</div>
-                  <div className="text-2xl font-bold text-pink-400">{progressData.armStrength} kg</div>
+                <div className="bg-gray-800 p-3 sm:p-4 rounded-lg">
+                  <div className="text-xs sm:text-sm text-gray-400 mb-1">Arm Strength</div>
+                  <div className="text-xl sm:text-2xl font-bold text-pink-400">{progressData.armStrength} kg</div>
                 </div>
               </div>
             </div>
@@ -828,18 +835,18 @@ export default function Dashboard() {
         </aside>
 
         {/* [อัปเดต] Panel กลาง: Your Program */}
-        <main className="flex-1 flex overflow-hidden">
-          <div className="flex-1 p-6 bg-gray-950 overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-white">Your Program</h1>
-              <div className="flex items-center gap-4">
+        <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          <div className="flex-1 p-3 sm:p-6 bg-gray-950 overflow-y-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Program</h1>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 {/* [ใหม่] Day Selector */}
                 <div className="flex items-center gap-2">
-                  <label className="text-white font-semibold">เลือกวัน:</label>
+                  <label className="text-white font-semibold text-sm sm:text-base">เลือกวัน:</label>
                   <select
                     value={selectedDay}
                     onChange={(e) => setSelectedDay(parseInt(e.target.value))}
-                    className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 sm:flex-none bg-gray-800 text-white px-3 sm:px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   >
                     <option value={1}>จันทร์ (Day 1)</option>
                     <option value={2}>อังคาร (Day 2)</option>
@@ -853,17 +860,18 @@ export default function Dashboard() {
                 {/* [ใหม่] ปุ่มดูประวัติ */}
                 <button
                   onClick={handleOpenHistoryModal}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-semibold transition-colors"
+                  className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-semibold transition-colors text-sm sm:text-base"
                 >
-                  <Calendar size={20} />
-                  ดูประวัติความคืบหน้า
+                  <Calendar size={18} className="sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">ดูประวัติความคืบหน้า</span>
+                  <span className="sm:hidden">ประวัติ</span>
                 </button>
               </div>
             </div>
-            <div className="bg-gray-900 p-6 rounded-lg shadow-inner border border-gray-800 min-h-[70vh] space-y-4">
+            <div className="bg-gray-900 p-3 sm:p-6 rounded-lg shadow-inner border border-gray-800 min-h-[50vh] sm:min-h-[70vh] space-y-3 sm:space-y-4">
               
               {/* หัวตารางโปรแกรม */}
-              <div className="grid grid-cols-4 gap-4 px-4 py-2 text-gray-400 font-semibold border-b border-gray-700">
+              <div className="hidden sm:grid grid-cols-4 gap-4 px-4 py-2 text-gray-400 font-semibold border-b border-gray-700 text-sm">
                 <span className="col-span-1">Exercise</span>
                 <span className="col-span-1 text-center">Weight</span>
                 <span className="col-span-1 text-center">Sets x Reps</span>
@@ -872,21 +880,36 @@ export default function Dashboard() {
 
               {/* [อัปเดต] รายการท่าออกกำลังกาย */}
               {loading ? (
-                <div className="text-center text-gray-500 pt-10">Loading program...</div>
+                <div className="text-center text-gray-500 pt-10 text-sm sm:text-base">Loading program...</div>
               ) : programItems.length > 0 ? (
                 programItems.map((item) => (
                   // ตรวจสอบว่าเป็นวันพักหรือไม่
                   item.exercise_name === "--- REST DAY ---" ? (
-                    <div key={item.id} className="text-center text-gray-400 py-4 font-semibold text-lg">
+                    <div key={item.id} className="text-center text-gray-400 py-4 font-semibold text-base sm:text-lg">
                       (Rest Day)
                     </div>
                   ) : (
-                    // แสดงท่าออกกำลังกาย
-                    <div key={item.id} className="grid grid-cols-4 gap-4 px-4 py-3 text-white border-b border-gray-800 items-center">
-                      <span className="col-span-1 font-semibold">{item.exercise_name}</span>
-                      <span className="col-span-1 text-center">{item.weight_kg} kg</span>
-                      <span className="col-span-1 text-center">{item.sets} x {item.reps}</span>
-                      <div className="col-span-1 text-center">
+                    // แสดงท่าออกกำลังกาย - Mobile: แสดงแบบ card, Desktop: แสดงแบบตาราง
+                    <div key={item.id} className="sm:grid sm:grid-cols-4 sm:gap-4 sm:px-4 sm:py-3 sm:text-white sm:border-b sm:border-gray-800 sm:items-center">
+                      {/* Mobile View */}
+                      <div className="sm:hidden bg-gray-800 p-3 rounded-lg mb-2 space-y-2">
+                        <div className="font-semibold text-white text-sm">{item.exercise_name}</div>
+                        <div className="flex justify-between items-center text-xs text-gray-300">
+                          <span>Weight: {item.weight_kg} kg</span>
+                          <span>Sets x Reps: {item.sets} x {item.reps}</span>
+                        </div>
+                        <button
+                          onClick={() => handleOpenProgressModal(item)}
+                          className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold text-xs transition-colors"
+                        >
+                          บันทึกความคืบหน้า
+                        </button>
+                      </div>
+                      {/* Desktop View */}
+                      <span className="hidden sm:block col-span-1 font-semibold">{item.exercise_name}</span>
+                      <span className="hidden sm:block col-span-1 text-center">{item.weight_kg} kg</span>
+                      <span className="hidden sm:block col-span-1 text-center">{item.sets} x {item.reps}</span>
+                      <div className="hidden sm:block col-span-1 text-center">
                         <button
                           onClick={() => handleOpenProgressModal(item)}
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold text-sm transition-colors"
@@ -899,7 +922,7 @@ export default function Dashboard() {
                 ))
               ) : (
                 // ถ้าไม่มีข้อมูล
-                <div className="text-center text-gray-500 pt-10">
+                <div className="text-center text-gray-500 pt-10 text-sm sm:text-base">
                   (ยังไม่มีโปรแกรมที่บันทึกไว้สำหรับวันนี้)
                 </div>
               )}
@@ -908,30 +931,30 @@ export default function Dashboard() {
           </div>
 
           {/* ... (รายการอาหาร Meal Per Day) ... */}
-          <aside className="w-80 bg-gray-900 p-6 shadow-xl flex flex-col space-y-6 overflow-hidden">
+          <aside className="w-full lg:w-80 bg-gray-900 p-4 sm:p-6 shadow-xl flex flex-col space-y-4 sm:space-y-6 overflow-hidden max-h-[50vh] lg:max-h-none">
             <div className="flex flex-col flex-1 min-h-0">
 
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white">Meal Per Day</h3>
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <h3 className="text-lg sm:text-xl font-bold text-white">Meal Per Day</h3>
                 <button
                   onClick={openFoodModal}
                   className="text-blue-400 hover:text-blue-300 transition-colors"
                   title="เพิ่มอาหารจากประวัติ"
                 >
-                  <PlusCircle size={24} />
+                  <PlusCircle size={20} className="sm:w-6 sm:h-6" />
                 </button>
               </div>
 
-              <div className="relative mb-4">
+              <div className="relative mb-3 sm:mb-4">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="h-5 w-5 text-gray-500" />
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
                 </span>
                 <input
                   type="text"
                   placeholder="ค้นหารายการอาหาร..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                 />
               </div>
 
@@ -940,32 +963,32 @@ export default function Dashboard() {
                   filteredFoodLogs.map((food) => (
                     <div
                       key={food.id}
-                      className="bg-gray-800 p-3 rounded-md flex justify-between items-center shadow"
+                      className="bg-gray-800 p-2 sm:p-3 rounded-md flex justify-between items-center shadow"
                     >
-                      <div className="flex flex-col">
-                        <span className="text-gray-200 truncate" title={food.food_name}>
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <span className="text-gray-200 truncate text-sm sm:text-base" title={food.food_name}>
                           {food.food_name}
                         </span>
-                        <div className="text-sm space-x-2 mt-1">
+                        <div className="text-xs sm:text-sm space-x-2 mt-1">
                           <span className="font-medium text-red-500">P{food.protein}</span>
                           <span className="font-medium text-orange-400">C{food.carbs}</span>
                           <span className="font-medium text-yellow-400">F{food.fat}</span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2  ml-2">
-                        <span className="text-blue-400 font-semibold">{food.calories} kcal</span>
+                      <div className="flex items-center space-x-1 sm:space-x-2 ml-2 shrink-0">
+                        <span className="text-blue-400 font-semibold text-xs sm:text-sm">{food.calories} kcal</span>
                         <button
                           onClick={() => handleRemoveFoodItem(food.id)}
                           className="text-gray-500 hover:text-red-500 transition-colors rounded-full"
                           aria-label="Remove item"
                         >
-                          <XCircle size={18} />
+                          <XCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 pt-10">
+                  <div className="text-center text-gray-500 pt-10 text-sm sm:text-base">
                     {searchQuery
                       ? 'ไม่พบรายการที่ค้นหา'
                       : '(ยังไม่มีข้อมูลอาหารสำหรับวันนี้)'}
@@ -974,8 +997,8 @@ export default function Dashboard() {
               </div>
 
               {/* ... (สรุปแคลอรีรวม) ... */}
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <div className="flex justify-between items-center text-lg font-bold">
+              <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-700">
+                <div className="flex justify-between items-center text-base sm:text-lg font-bold">
                   <span>Total:</span>
                   <span className="text-blue-400">{totalCalories.toFixed(0)} kcal</span>
                 </div>
@@ -987,8 +1010,8 @@ export default function Dashboard() {
 
       {/* ... (โค้ด Modal เพิ่มอาหาร) ... */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-[80vh]">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-[90vh] sm:max-h-[80vh]">
             
             <div className="flex justify-between items-center p-4 border-b border-gray-700">
               <h4 className="text-lg font-bold">เลือกอาหารจากประวัติ</h4>
@@ -1050,7 +1073,7 @@ export default function Dashboard() {
 
       {/* [ใหม่] Modal สำหรับบันทึก Progress */}
       {isProgressModalOpen && editingExercise && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-md">
             <div className="flex justify-between items-center p-4 border-b border-gray-700">
               <h4 className="text-lg font-bold text-white">บันทึกความคืบหน้า: {editingExercise.exercise_name}</h4>
@@ -1125,8 +1148,8 @@ export default function Dashboard() {
 
       {/* [ใหม่] Modal สำหรับดูประวัติความคืบหน้า */}
       {isHistoryModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-gray-700">
               <h4 className="text-xl font-bold text-white">ประวัติความคืบหน้า</h4>
               <button onClick={() => setIsHistoryModalOpen(false)} className="text-gray-500 hover:text-white">
@@ -1157,8 +1180,8 @@ export default function Dashboard() {
                         
                         <div className="space-y-2">
                           {week.workouts.map((workout) => (
-                            <div key={workout.id} className="bg-gray-900 p-3 rounded-md grid grid-cols-5 gap-4 text-sm">
-                              <span className="text-white font-semibold">{workout.exercise_name}</span>
+                            <div key={workout.id} className="bg-gray-900 p-2 sm:p-3 rounded-md grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-4 text-xs sm:text-sm">
+                              <span className="text-white font-semibold col-span-1 sm:col-span-1">{workout.exercise_name}</span>
                               <span className="text-gray-300">น้ำหนัก: {workout.weight_kg} kg</span>
                               <span className="text-gray-300">Sets: {workout.sets}</span>
                               <span className="text-gray-300">Reps: {workout.reps}</span>
