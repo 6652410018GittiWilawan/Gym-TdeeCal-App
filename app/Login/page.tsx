@@ -36,15 +36,13 @@ export default function Login() {
       if (authData.user && authData.session) {
         console.log("Login successful (Supabase)", authData.session);
         
-        // รอให้ session ถูก save ใน localStorage เสร็จก่อน redirect
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
         // ตรวจสอบ redirect parameter จาก URL (ถ้ามี) แต่ถ้าไม่มีให้ไปหน้า UpdateProfile
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get('redirect') || '/UpdateProfile';
         
-        // ใช้ window.location.href เพื่อให้ full page reload และ middleware จะทำงานอีกครั้ง
-        // เมื่อ reload หน้า Supabase จะอ่าน session จาก localStorage และ set cookie
+        // Redirect ทันที (Supabase จะ save session ใน localStorage อัตโนมัติ)
+        // เมื่อ redirect ไปหน้าใหม่ Supabase จะอ่าน session จาก localStorage
+        console.log("Redirecting to:", redirectTo);
         window.location.href = redirectTo;
       } else {
         // กันเหนียว กรณีที่ไม่น่าจะเกิดขึ้น
