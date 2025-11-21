@@ -26,11 +26,16 @@ export async function middleware(request: NextRequest) {
            name.includes('refresh-token')
   })
 
-  // ถ้าเป็น protected route แต่ไม่มี auth cookie ให้ redirect ไปหน้า Login
+  // ถ้าเป็น protected route แต่ไม่มี auth cookie
+  // ให้ผ่านไปก่อน (client-side จะตรวจสอบ session จาก localStorage)
+  // แต่ถ้าเป็น route อื่นที่ไม่ใช่ Login/Register ก็ให้ redirect ไป Login
   if (isProtectedRoute && !hasAuthCookie) {
-    const redirectUrl = new URL('/Login', request.url)
-    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+    // ถ้าไม่ใช่ Login หรือ Register route ให้ redirect
+    if (!request.nextUrl.pathname.startsWith('/Login') && !request.nextUrl.pathname.startsWith('/Register')) {
+      const redirectUrl = new URL('/Login', request.url)
+      redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
   }
 
   // ถ้ามี auth cookie และพยายามเข้า Login/Register ให้ redirect ไป Dashboard

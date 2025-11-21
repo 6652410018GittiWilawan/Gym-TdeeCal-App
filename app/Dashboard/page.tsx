@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Dumbbell, XCircle, PlusCircle, Search, Calendar } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 // กำหนด type สำหรับข้อมูลโปรไฟล์
 interface UserProfile {
@@ -110,6 +111,7 @@ const getMuscleGroupFromExercise = (exerciseName: string, allProgramItems?: Arra
 };
 
 export default function Dashboard() {
+  const router = useRouter();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const [foodLogs, setFoodLogs] = useState<FoodData[]>([]);
@@ -565,13 +567,23 @@ export default function Dashboard() {
         }
         console.error("Error fetching data:", errorMessage);
         setError("ไม่สามารถโหลดข้อมูล Dashboard ได้: " + errorMessage);
+        
+        // ถ้า error เกี่ยวกับ authentication ให้ redirect ไป Login
+        if (errorMessage.includes("ไม่พบผู้ใช้งาน") || 
+            errorMessage.includes("กรุณาล็อกอิน") ||
+            errorMessage.includes("unauthorized") ||
+            errorMessage.includes("authentication")) {
+          setTimeout(() => {
+            router.push('/Login?redirect=/Dashboard');
+          }, 1000);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData()
-  }, [selectedDay]);
+  }, [selectedDay, router]);
 
   // [ใหม่] คำนวณ Progress Metrics (ต้องอยู่ก่อน early returns)
   const progressData = useMemo(() => {
@@ -652,10 +664,26 @@ export default function Dashboard() {
     );
   }
   
-  if (!userProfile) {
+  // ตรวจสอบ user session อีกครั้งถ้าไม่มี userProfile
+  useEffect(() => {
+    if (!loading && !userProfile && !error) {
+      const checkAuth = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/Login?redirect=/Dashboard');
+        }
+      };
+      checkAuth();
+    }
+  }, [loading, userProfile, error, router]);
+
+  if (!userProfile && !loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-400 text-xl">
-        ไม่พบข้อมูลผู้ใช้
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          กำลังตรวจสอบข้อมูลผู้ใช้...
+        </div>
       </div>
     );
   }
