@@ -38,9 +38,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ถ้ามี auth cookie และพยายามเข้า Login/Register ให้ redirect ไป Dashboard
+  // ถ้ามี auth cookie และพยายามเข้า Login/Register ให้ redirect ไป UpdateProfile
   if (hasAuthCookie && (request.nextUrl.pathname === '/Login' || request.nextUrl.pathname === '/Register')) {
-    return NextResponse.redirect(new URL('/Dashboard', request.url))
+    return NextResponse.redirect(new URL('/UpdateProfile', request.url))
   }
 
   return NextResponse.next()

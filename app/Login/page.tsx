@@ -3,11 +3,9 @@
 import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient'; // ⚠️ ตรวจสอบว่า Path นี้ถูกต้อง
 
 export default function Login() {
-  const router = useRouter();
   // ใช้ State เพื่อเก็บค่า email และ password (เหมือนเดิม)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,9 +39,9 @@ export default function Login() {
         // รอให้ session ถูก save ใน localStorage เสร็จก่อน redirect
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // ตรวจสอบ redirect parameter จาก URL (ถ้ามี)
+        // ตรวจสอบ redirect parameter จาก URL (ถ้ามี) แต่ถ้าไม่มีให้ไปหน้า UpdateProfile
         const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get('redirect') || '/Dashboard';
+        const redirectTo = urlParams.get('redirect') || '/UpdateProfile';
         
         // ใช้ window.location.href เพื่อให้ full page reload และ middleware จะทำงานอีกครั้ง
         // เมื่อ reload หน้า Supabase จะอ่าน session จาก localStorage และ set cookie
