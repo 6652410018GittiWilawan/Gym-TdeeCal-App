@@ -11,7 +11,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(''); // สำหรับแสดงข้อผิดพลาด
   const [loading, setLoading] = useState(false); // สำหรับสถานะกำลังโหลด
-  const [hasExistingSession, setHasExistingSession] = useState(false); // สำหรับตรวจสอบ session ที่มีอยู่
 
   // ตรวจสอบว่า Supabase client พร้อมใช้งานหรือไม่
   React.useEffect(() => {
@@ -20,26 +19,33 @@ export default function Login() {
     console.log("Supabase Key:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Missing");
     
     // ทดสอบว่า Supabase client ทำงานได้หรือไม่
-    supabase.auth.getSession().then(({ data, error }) => {
-      console.log("Initial session check:", { hasSession: !!data.session, error });
-      
-      // ถ้ามี session อยู่แล้ว แสดงข้อความแจ้งเตือน
-      if (data.session && data.session.user) {
-        console.log("Session exists, user:", data.session.user.email);
-        setHasExistingSession(true);
+    const checkSessionAndRedirect = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        console.log("Initial session check:", { hasSession: !!data.session, error });
         
-        // ถ้าไม่มี redirect parameter ให้ auto redirect หลังจาก 2 วินาที
-        const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.get('redirect')) {
+        // ถ้ามี session อยู่แล้ว ให้ redirect ไป UpdateProfile ทันที
+        if (data.session && data.session.user) {
+          console.log("Session exists, user:", data.session.user.email);
+          
+          // ตรวจสอบ redirect parameter จาก URL (ถ้ามี) แต่ถ้าไม่มีให้ไปหน้า UpdateProfile
+          const urlParams = new URLSearchParams(window.location.search);
+          const redirectTo = urlParams.get('redirect') || '/UpdateProfile';
+          
+          console.log("Redirecting to:", redirectTo);
+          
+          // ใช้ window.location.replace เพื่อป้องกันการย้อนกลับ
+          // และใช้ setTimeout เพื่อให้แน่ใจว่า component render เสร็จก่อน
           setTimeout(() => {
-            console.log("Auto redirecting to UpdateProfile");
-            window.location.href = '/UpdateProfile';
-          }, 2000);
+            window.location.replace(redirectTo);
+          }, 100);
         }
+      } catch (err) {
+        console.error("Supabase client error:", err);
       }
-    }).catch((err) => {
-      console.error("Supabase client error:", err);
-    });
+    };
+    
+    checkSessionAndRedirect();
   }, []);
 
   // [แก้ไข] ฟังก์ชันนี้ถูกเปลี่ยนเป็น async และเชื่อมต่อ Supabase
@@ -158,25 +164,6 @@ export default function Login() {
         <p className="text-center text-gray-300 mb-8">
           เข้าสู่ระบบเพื่อเริ่มต้นเส้นทางของคุณ
         </p>
-
-        {/* แสดงข้อความแจ้งเตือนถ้ามี session อยู่แล้ว */}
-        {hasExistingSession && (
-          <div className="mb-4 p-3 bg-blue-900/50 border border-blue-700 rounded-lg text-sm text-blue-200">
-            <p className="font-semibold mb-2">คุณได้เข้าสู่ระบบอยู่แล้ว</p>
-            <p className="text-xs mb-2">กำลังพาไปหน้า UpdateProfile...</p>
-            <button
-              onClick={async () => {
-                console.log("Logging out...");
-                await supabase.auth.signOut();
-                setHasExistingSession(false);
-                window.location.reload();
-              }}
-              className="text-xs underline hover:text-blue-100"
-            >
-              หรือต้องการเข้าสู่ระบบด้วยบัญชีอื่น?
-            </button>
-          </div>
-        )}
 
         {/* ฟอร์ม Login */}
         <form onSubmit={handleSubmit} className="space-y-6">
