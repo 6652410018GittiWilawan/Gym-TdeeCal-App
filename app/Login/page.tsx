@@ -121,20 +121,32 @@ export default function Login() {
       
       console.log("Preparing to redirect to:", redirectTo);
       
-      // รอสักครู่เพื่อให้ Supabase save session
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // รอให้ Supabase save session ใน localStorage
+      // ตรวจสอบ session จนกว่าจะถูก save แล้ว
+      let sessionSaved = false;
+      let attempts = 0;
+      const maxAttempts = 10;
       
-      // ตรวจสอบว่า session ถูก save แล้วจริงๆ
-      const { data: { session: verifySession } } = await supabase.auth.getSession();
-      console.log("Session verification:", !!verifySession);
-      
-      if (!verifySession) {
-        console.error("Session not saved, retrying...");
-        await new Promise(resolve => setTimeout(resolve, 200));
+      while (!sessionSaved && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const { data: { session: verifySession } } = await supabase.auth.getSession();
+        
+        if (verifySession && verifySession.access_token) {
+          sessionSaved = true;
+          console.log("Session saved successfully:", verifySession.user.email);
+        } else {
+          attempts++;
+          console.log(`Waiting for session to save... (attempt ${attempts}/${maxAttempts})`);
+        }
       }
       
-      // Redirect ทันที (Supabase จะ save session ใน localStorage อัตโนมัติ)
-      // เมื่อ redirect ไปหน้าใหม่ Supabase จะอ่าน session จาก localStorage
+      if (!sessionSaved) {
+        console.error("Session not saved after multiple attempts, redirecting anyway...");
+      }
+      
+      // ใช้ window.location.href เพื่อให้ full page reload
+      // เมื่อ reload หน้า Supabase จะอ่าน session จาก localStorage
+      // และ client-side จะตรวจสอบ session และทำงานต่อ
       console.log("Redirecting to:", redirectTo);
       window.location.href = redirectTo;
 

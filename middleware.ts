@@ -28,15 +28,9 @@ export async function middleware(request: NextRequest) {
 
   // ถ้าเป็น protected route แต่ไม่มี auth cookie
   // ให้ผ่านไปก่อน (client-side จะตรวจสอบ session จาก localStorage)
-  // แต่ถ้าเป็น route อื่นที่ไม่ใช่ Login/Register ก็ให้ redirect ไป Login
-  if (isProtectedRoute && !hasAuthCookie) {
-    // ถ้าไม่ใช่ Login หรือ Register route ให้ redirect
-    if (!request.nextUrl.pathname.startsWith('/Login') && !request.nextUrl.pathname.startsWith('/Register')) {
-      const redirectUrl = new URL('/Login', request.url)
-      redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
-  }
+  // Supabase เก็บ session ใน localStorage ไม่ใช่ cookies ดังนั้น middleware จะไม่เห็น
+  // แต่ client-side จะตรวจสอบและ redirect ไป Login ถ้าไม่มี session
+  // ไม่ต้อง block ที่ middleware เพราะ Supabase ใช้ localStorage
 
   // ถ้ามี auth cookie และพยายามเข้า Login/Register ให้ redirect ไป UpdateProfile
   if (hasAuthCookie && (request.nextUrl.pathname === '/Login' || request.nextUrl.pathname === '/Register')) {
