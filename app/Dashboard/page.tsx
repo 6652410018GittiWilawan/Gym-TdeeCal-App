@@ -599,14 +599,17 @@ export default function Dashboard() {
       };
     }
 
+    // ใช้ type assertion เพราะตรวจสอบแล้วว่าไม่เป็น null
+    const profile: UserProfile = userProfile;
+
     // คำนวณ Weight Loss และ Weight Gain: เปรียบเทียบน้ำหนักตัวแรกกับล่าสุด
     const sortedByDate = [...workoutProgress].sort((a, b) => 
       new Date(a.workout_date).getTime() - new Date(b.workout_date).getTime()
     );
-    const firstWeight = sortedByDate.find(w => w.body_weight > 0)?.body_weight || userProfile.user_weight;
+    const firstWeight = sortedByDate.find(w => w.body_weight > 0)?.body_weight || profile.user_weight;
     const lastWeight = [...workoutProgress]
       .filter(w => w.body_weight > 0)
-      .sort((a, b) => new Date(b.workout_date).getTime() - new Date(a.workout_date).getTime())[0]?.body_weight || userProfile.user_weight;
+      .sort((a, b) => new Date(b.workout_date).getTime() - new Date(a.workout_date).getTime())[0]?.body_weight || profile.user_weight;
     
     const weightChange = firstWeight - lastWeight;
     const weightLoss = weightChange > 0 ? Math.round(weightChange) : 0;
@@ -646,6 +649,19 @@ export default function Dashboard() {
     };
   }, [workoutProgress, userProfile, allProgramItems]);
 
+  // ตรวจสอบ user session อีกครั้งถ้าไม่มี userProfile (ต้องอยู่ก่อน early returns)
+  useEffect(() => {
+    if (!loading && !userProfile && !error) {
+      const checkAuth = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/Login?redirect=/Dashboard');
+        }
+      };
+      checkAuth();
+    }
+  }, [loading, userProfile, error, router]);
+
   // ... (ส่วน Loading, Error) ...
   if (loading) {
     return (
@@ -663,36 +679,36 @@ export default function Dashboard() {
       </div>
     );
   }
-  
-  // ตรวจสอบ user session อีกครั้งถ้าไม่มี userProfile
-  useEffect(() => {
-    if (!loading && !userProfile && !error) {
-      const checkAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          router.push('/Login?redirect=/Dashboard');
-        }
-      };
-      checkAuth();
-    }
-  }, [loading, userProfile, error, router]);
 
-  if (!userProfile && !loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-400 text-xl">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          กำลังตรวจสอบข้อมูลผู้ใช้...
+  // ตรวจสอบว่า userProfile ไม่เป็น null ก่อนใช้งาน
+  if (!userProfile) {
+    if (!loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-400 text-xl">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            กำลังตรวจสอบข้อมูลผู้ใช้...
+          </div>
         </div>
+      );
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-blue-400 text-xl">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500 mr-3"></div>
+        กำลังโหลด...
       </div>
     );
   }
 
+  // TypeScript type guard: หลังจากการ check ข้างบน TypeScript รู้ว่า userProfile ไม่เป็น null
+  // แต่เพื่อความแน่ใจ ใช้ non-null assertion หรือสร้าง const ใหม่
+  const profile: UserProfile = userProfile;
+
   // [คำนวณส่วนต่าง]
-  const remainingProtein = (userProfile.protein_g || 0) - totalProtein;
-  const remainingCarbs = (userProfile.carb_g || 0) - totalCarbs;
-  const remainingFat = (userProfile.fat_g || 0) - totalFat;
-  const remainingCalories = (userProfile.tdee || 0) - totalCalories;
+  const remainingProtein = (profile.protein_g || 0) - totalProtein;
+  const remainingCarbs = (profile.carb_g || 0) - totalCarbs;
+  const remainingFat = (profile.fat_g || 0) - totalFat;
+  const remainingCalories = (profile.tdee || 0) - totalCalories;
 
   // UI หลักของ Dashboard
   return (
@@ -721,40 +737,40 @@ export default function Dashboard() {
           <div className="flex flex-col items-center space-y-2 sm:space-y-4">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-blue-500 shadow-lg relative">
               <Image 
-                src={userProfile.profile_pic_url} 
+                src={profile.profile_pic_url} 
                 alt="Profile" 
                 fill
                 className="object-cover"
                 sizes="(max-width: 640px) 96px, 128px"
               />
             </div>
-            <h2 className="text-lg sm:text-2xl font-bold text-white text-center">{userProfile.full_name}</h2>
+            <h2 className="text-lg sm:text-2xl font-bold text-white text-center">{profile.full_name}</h2>
           </div>
 
           {/* ... (ข้อมูลผู้ใช้) ... */}
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Gender:</span>
-              <span>{userProfile.gender}</span>
+              <span>{profile.gender}</span>
             </div>
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Age:</span>
-              <span>{userProfile.age}</span>
+              <span>{profile.age}</span>
             </div>
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">weight:</span>
-              <span>{userProfile.user_weight} kg</span>
+              <span>{profile.user_weight} kg</span>
             </div>
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">height:</span>
-              <span>{userProfile.user_height} cm</span>
+              <span>{profile.user_height} cm</span>
             </div>
             
             {/* แสดง Tdee แบบ 3 บรรทัด */}
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Tdee:</span>
               <div className="flex flex-col items-end text-xs sm:text-sm">
-                <span className="text-blue-400">{userProfile.tdee} kcal (เป้าหมาย)</span>
+                <span className="text-blue-400">{profile.tdee} kcal (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalCalories.toFixed(0)} kcal</span>
                 <span className={remainingCalories >= 0 ? "text-blue-400" : "text-green-400"}>
                   {remainingCalories >= 0
@@ -769,7 +785,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Protein:</span>
               <div className="flex flex-col items-end text-xs sm:text-sm">
-                <span className="text-red-500">{userProfile.protein_g} g (เป้าหมาย)</span>
+                <span className="text-red-500">{profile.protein_g} g (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalProtein.toFixed(0)} g</span>
                 <span className={remainingProtein >= 0 ? "text-red-500" : "text-green-400"}>
                   {remainingProtein >= 0
@@ -784,7 +800,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Carbs:</span>
               <div className="flex flex-col items-end text-xs sm:text-sm">
-                <span className="text-orange-400">{userProfile.carb_g} g (เป้าหมาย)</span>
+                <span className="text-orange-400">{profile.carb_g} g (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalCarbs.toFixed(0)} g</span>
                 <span className={remainingCarbs >= 0 ? "text-orange-400" : "text-green-400"}>
                   {remainingCarbs >= 0
@@ -799,7 +815,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center text-gray-300 text-sm sm:text-lg">
               <span className="font-semibold">Fat:</span>
               <div className="flex flex-col items-end text-xs sm:text-sm">
-                <span className="text-yellow-400">{userProfile.fat_g} g (เป้าหมาย)</span>
+                <span className="text-yellow-400">{profile.fat_g} g (เป้าหมาย)</span>
                 <span className="text-gray-400">กินไปแล้ว {totalFat.toFixed(0)} g</span>
                 <span className={remainingFat >= 0 ? "text-yellow-400" : "text-green-400"}>
                   {remainingFat >= 0
