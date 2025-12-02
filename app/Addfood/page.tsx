@@ -12,9 +12,9 @@ export default function Addfood() {
   // เพิ่ม State สำหรับ macros
   const [foodName, setFoodName] = useState("");
   const [calories, setCalories] = useState("");
-  const [protein, setProtein] = useState(""); // <-- เพิ่ม
-  const [carbs, setCarbs] = useState("");     // <-- เพิ่ม
-  const [fat, setFat] = useState("");         // <-- เพิ่ม
+  const [protein, setProtein] = useState(""); 
+  const [carbs, setCarbs] = useState("");   
+  const [fat, setFat] = useState("");        
   
   const [eatenOn, setEatenOn] = useState(new Date().toISOString().split('T')[0]);
   
@@ -36,9 +36,9 @@ export default function Addfood() {
     
     // แปลงค่าทั้งหมดเป็นตัวเลข
     const caloriesValue = parseInt(calories, 10);
-    const proteinValue = parseInt(protein, 10); // <-- เพิ่ม
-    const carbsValue = parseInt(carbs, 10);   // <-- เพิ่ม
-    const fatValue = parseInt(fat, 10);       // <-- เพิ่ม
+    const proteinValue = parseInt(protein, 10); 
+    const carbsValue = parseInt(carbs, 10);
+    const fatValue = parseInt(fat, 10);
 
     // อัปเดตการตรวจสอบตัวเลข
     if (isNaN(caloriesValue) || caloriesValue < 0 ||
@@ -64,9 +64,9 @@ export default function Addfood() {
         user_id: user.id,
         food_name: foodName,
         calories: caloriesValue,
-        protein: proteinValue, // <-- เพิ่ม
-        carbs: carbsValue,     // <-- เพิ่ม
-        fat: fatValue,         // <-- เพิ่ม
+        protein: proteinValue,
+        carbs: carbsValue,   
+        fat: fatValue,         
         eaten_on: eatenOn,
       };
 
@@ -99,7 +99,6 @@ export default function Addfood() {
       className="relative min-h-screen flex items-center justify-center p-4 text-white overflow-hidden"
       style={{ backgroundColor: '#0a0a0a' }}
     >
-      {/* ... (ส่วนเอฟเฟกต์แสง ไม่เปลี่ยนแปลง) ... */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
         <div className="w-[600px] h-[600px] bg-blue-900 rounded-full blur-[150px] opacity-25"></div>
       </div>
@@ -163,8 +162,6 @@ export default function Addfood() {
               />
             </div>
           </div>
-
-          {/* === บล็อกใหม่ที่เพิ่มเข้ามา === */}
 
           {/* ช่องกรอก โปรตีน */}
           <div>
@@ -240,11 +237,8 @@ export default function Addfood() {
               />
             </div>
           </div>
-          
-          {/* === จบส่วนที่เพิ่ม === */}
 
-
-          {/* ... (ส่วนที่เหลือ: error, buttons ไม่เปลี่ยนแปลง) ... */}
+          {/* ส่วน error, buttons */}
           {error && (
             <div className="text-red-400 text-center text-sm py-2">
               {error}

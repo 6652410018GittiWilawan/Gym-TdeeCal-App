@@ -50,7 +50,7 @@ export default function UpdateProfile() {
     const [fatRatio, setFatRatio] = useState(0); // Default 25%
     const [totalRatio, setTotalRatio] = useState(100); // State สำหรับผลรวม
 
-    // --- Activity Multipliers (ตัวคูณระดับกิจกรรม) ---
+    //  Activity Multipliers (ตัวคูณระดับกิจกรรม)
     const activityMultipliers: { [key: string]: number } = {
         "level-0": 1.2,   
         "level-1": 1.375, 
@@ -207,21 +207,21 @@ export default function UpdateProfile() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("ไม่พบผู้ใช้งาน");
 
-            // --- 1. คำนวณ TDEE ใหม่ ---
+            // --- คำนวณ TDEE ใหม่ ---
             const weightKg = Number(weight);
             const heightCm = Number(height);
             const calculatedTDEE = calculateTDEE(gender, weightKg, heightCm, age, activityLevel);
             
             let calculatedMacros: Macros = { carb: null, protein: null, fat: null };
             if (calculatedTDEE) {
-                // --- 2. คำนวณ Macros ใหม่ ---
+                // --- คำนวณ Macros ใหม่ ---
                 calculatedMacros = calculateMacros(calculatedTDEE);
                 setMacros(calculatedMacros);
             } else {
                 console.warn("ไม่สามารถคำนวณ TDEE และ Macros ได้เนื่องจากข้อมูลไม่สมบูรณ์");
             }
 
-            // --- 3. แยก Object ที่จะอัปเดต ออกมา ---
+            // --- แยก Object ที่จะอัปเดต ออกมา ---
             const updates: { [key: string]: any } = {
                 full_name: fullName,
                 user_height: height,
@@ -239,7 +239,7 @@ export default function UpdateProfile() {
                 fat_ratio: fatRatio,
             };
 
-            // 4. จัดการอัปโหลดรูป
+            // จัดการอัปโหลดรูป
             if (image_file) {
                 console.log("กำลังอัปโหลดรูปใหม่...");
                 const new_image_file_name = `${user.id}-${Date.now()}-${image_file.name}`;
@@ -260,7 +260,7 @@ export default function UpdateProfile() {
                 updates.profile_pic_url = urlData.publicUrl; 
             }
             
-            //  5. สั่ง Update ข้อมูล
+            //  สั่ง Update ข้อมูล
             const { error: updateError } = await supabase
                 .from("profiles")
                 .update(updates)
@@ -384,10 +384,9 @@ export default function UpdateProfile() {
                                     </span>
                                     <input
                                         type="text"
-                                        // แปลงค่า male/female เป็น ชาย/หญิง
                                         value={gender === 'male' ? 'ชาย' : (gender === 'female' ? 'หญิง' : '-')}
                                         className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 text-gray-300 rounded-lg"
-                                        disabled // <--- ห้ามแก้ไข
+                                        disabled
                                     />
                                 </div>
                             </div>

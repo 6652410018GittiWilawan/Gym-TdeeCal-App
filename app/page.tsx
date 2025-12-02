@@ -4,7 +4,7 @@ import { Dumbbell, Calendar, HandFist , Mail, Target, HeartPulse } from 'lucide-
 import hopic from './Images/hopic.png'
 import Image from 'next/image'
 
-//  1. Navbar Component โหดๆ ตอนแรกไม่รู้จะใส่อะไรแต่คิดว่าปกติเว็บเรามันเป็นแนวจัดโปรแกรมเองมากกว่า 
+//  Navbar Component โหดๆ ตอนแรกไม่รู้จะใส่อะไรแต่คิดว่าปกติเว็บเรามันเป็นแนวจัดโปรแกรมเองมากกว่า 
 // แล้วการที่มีการวัดตัว ค่าTDEEอะไรพวกนี้มันต้องหลังจากล็อกอิน เลยใส่ Navbar ธรรมดาๆ ไปก่อน 
 const Navbar: React.FC = () => {
   return (
@@ -53,7 +53,7 @@ const Navbar: React.FC = () => {
   );
 };
 
-// --- 2. Hero Section (ส่วนต้อนรับหลัก) ---
+// --- Hero Section (ส่วนต้อนรับหลัก) ---
 const Hero: React.FC = () => {
   return (
     <section 
@@ -86,7 +86,7 @@ const Hero: React.FC = () => {
   );
 };
 
-// --- 3. About Section (เกี่ยวกับเรา) ---
+// --- About ---
 const About: React.FC = () => {
   return (
     <section id="about" className="py-20 bg-gray-900">
@@ -128,7 +128,7 @@ const About: React.FC = () => {
   );
 };
 
-// --- 4. Workout Schedule Section (ตารางออกกำลังกาย) ---
+// --- Workout Schedule Section (ตารางออกกำลังกาย) ---
 // สร้าง Interface สำหรับตาราง (TypeScript)
 interface ScheduleItem {
   day: string;
@@ -182,7 +182,7 @@ const Schedule: React.FC = () => {
 };
 
 
-// --- 5. Footer (ส่วนท้าย) ---
+// --- Footer (ส่วนท้าย) ---
 const Footer: React.FC = () => {
   return (
     <footer id="contact" className="bg-gray-950 text-gray-400 py-16">

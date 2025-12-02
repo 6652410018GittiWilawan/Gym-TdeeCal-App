@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { PlusCircle, XCircle, ChevronDown } from 'lucide-react';
 
-// 1. กำหนด Type
 interface ProgramItem {
   id: number;
   user_id: string;
@@ -17,7 +16,7 @@ interface ProgramItem {
   muscle_group: string;
 }
 
-// 2. Array สำหรับ Dropdown
+//  Array สำหรับ Dropdown
 const muscleGroups = [
   { id: 'chest', name: 'อก (Chest)' },
   { id: 'quads', name: 'ขาหน้า (Quads)' },
@@ -33,7 +32,7 @@ const muscleGroups = [
   { id: 'rest', name: 'Rest Day' },
 ];
 
-// 3. สร้างรายการท่าออกกำลังกายสำหรับ Dropdown
+//  สร้างรายการท่าออกกำลังกายสำหรับ Dropdown
 const exerciseLists: Record<string, string[]> = {
   chest: ['Bench Press', 'Incline Dumbbell Press', 'Dips', 'Cable Fly', 'Dumbbell Fly', 'Push Up'],
   quads: ['Squat', 'Leg Press', 'Lunge', 'Leg Extension', 'Goblet Squat'],
@@ -71,7 +70,7 @@ export default function ProgramPage() {
 
   const days = [1, 2, 3, 4, 5, 6, 7];
 
-  // 5. ฟังก์ชันดึงข้อมูล
+  // ฟังก์ชันดึงข้อมูล
   const getUserAndFetchAll = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
@@ -88,7 +87,7 @@ export default function ProgramPage() {
     return data || [];
   }, []);
 
-  // 6. useEffect - ดึงข้อมูลเมื่อ component mount
+  // useEffect - ดึงข้อมูลเมื่อ component mount
   useEffect(() => {
     let cancelled = false;
     
@@ -108,7 +107,7 @@ export default function ProgramPage() {
     };
   }, [getUserAndFetchAll]);
 
-  // 7. useMemo สำหรับ "จัดกลุ่ม" (ไม่จำเป็นต้องแก้ไข)
+  //  useMemo สำหรับ "จัดกลุ่ม"
   const groupedExercises = useMemo(() => {
     return allExercises.reduce((acc, ex) => {
       const day = ex.day_of_week;
@@ -120,7 +119,7 @@ export default function ProgramPage() {
     }, {} as Record<number, ProgramItem[]>);
   }, [allExercises]);
 
-  // 8. ฟังก์ชัน CRUD
+  // ฟังก์ชัน CRUD
 
   // [แก้ไข] ฟังก์ชันนี้ถูกปรับเพื่อให้ใช้ฟังก์ชัน Save ในการ Update
   const handleUpdateExercise = useCallback(async () => {
@@ -150,14 +149,12 @@ export default function ProgramPage() {
     }
   }, [editingId, editFormData, getUserAndFetchAll]);
 
-  // [NEW/MODIFIED] ฟังก์ชันสำหรับปุ่ม Finish (ใช้แทน Save/Return)
-  // หากมีรายการที่กำลังแก้ไขอยู่ จะทำการ Save ก่อน จากนั้นจึงกลับไป Dashboard
+  //ฟังก์ชันสำหรับปุ่ม Finish (ใช้แทน Save/Return)
   const handleFinish = async () => {
     if (editingId) {
-      await handleUpdateExercise(); // พยายามบันทึกก่อน
+      await handleUpdateExercise();
     }
     // ไม่ว่าจะบันทึกหรือไม่สำเร็จ (หากไม่สำเร็จ error จะถูก alert ออกไปแล้ว)
-    // เราจะปิดโหมดแก้ไขและกลับไป Dashboard
     setEditingId(null);
     setEditFormData(null);
     router.push('/Dashboard');
@@ -205,7 +202,7 @@ export default function ProgramPage() {
     const exercisesForDay = groupedExercises[day] || [];
     const exerciseIdsToDelete = exercisesForDay.map(ex => ex.id);
 
-    // 1. ลบรายการเดิมทั้งหมดสำหรับวันนี้
+    // ลบรายการเดิมทั้งหมดสำหรับวันนี้
     if (exerciseIdsToDelete.length > 0) {
       const { error: deleteError } = await supabase
         .from('program_items')
@@ -219,7 +216,7 @@ export default function ProgramPage() {
       }
     }
 
-    // 2. เพิ่มรายการ Rest Day
+    // เพิ่มรายการ Rest Day
     const restExercise = {
       user_id: user.id,
       exercise_name: REST_DAY_NAME,
@@ -415,7 +412,7 @@ export default function ProgramPage() {
   };
 
 
-  // 9. ฟังก์ชันสำหรับ Logic "แก้ไข" (Update)
+  // ฟังก์ชันสำหรับ Logic "แก้ไข" (Update)
   const handleRowClick = (exercise: ProgramItem) => {
     // หากกดซ้ำที่แถวเดิม จะเป็นการยกเลิกการแก้ไข
     if (editingId === exercise.id) {
@@ -498,7 +495,7 @@ export default function ProgramPage() {
       <div className="flex-1 lg:grow-2">
         <h1 className="text-3xl font-bold mb-6">Your Program</h1>
 
-        {/* 1. แถวสำหรับ "Add Exercise" */}
+        {/* แถวสำหรับ "Add Exercise" */}
         <div className="bg-gray-800 p-3 rounded-lg flex items-center gap-3 mb-4">
           <select
             value={newMuscleGroup}
@@ -531,7 +528,7 @@ export default function ProgramPage() {
           </button>
         </div>
 
-        {/* 2. รายการ Accordion ของแต่ละวัน */}
+        {/* รายการ Accordion ของแต่ละวัน */}
         <div className="space-y-3">
           {loading ? (<div className="text-gray-400">Loading...</div>) : (
             days.map((day) => {
@@ -556,7 +553,7 @@ export default function ProgramPage() {
                   {isDayOpen && (
                     <div className="p-4 space-y-3 border-t border-gray-700">
 
-                      {/* 2.1 รายการท่าออกกำลังกาย */}
+                      {/* รายการท่าออกกำลังกาย */}
                       {exercisesForDay.length > 0 ? (
                         exercisesForDay.map((ex) => {
                           const isEditing = editingId === ex.id;
@@ -636,7 +633,7 @@ export default function ProgramPage() {
                         <p className="text-gray-500 text-center">(ยังไม่มีโปรแกรมสำหรับวันนี้)</p>
                       )}
 
-                      {/* 2.2 ปุ่ม RestDay */}
+                      {/* ปุ่ม RestDay */}
                       <button
                         onClick={() => handleAddRestDay(day)}
                         className="w-full py-2 mt-2 rounded-md font-semibold bg-red-800 text-white hover:bg-red-700"

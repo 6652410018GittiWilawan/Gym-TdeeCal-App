@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-// ไอคอน
 import { Mail, Lock, User, } from 'lucide-react';
 
 import { supabase } from '../../lib/supabaseClient';
@@ -16,7 +15,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ฟังก์ชันจัดการการเปลี่ยนแปลงรูปภาพ (คงเดิม)
+  // ฟังก์ชันจัดการการเปลี่ยนแปลงรูปภาพ
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -31,14 +30,13 @@ export default function Register() {
     }
   };
 
-  //  handleSubmit 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // 1. สร้างบัญชีผู้ใช้ใน Supabase 
+      //  สร้างบัญชีผู้ใช้ใน Supabase 
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
@@ -52,14 +50,14 @@ export default function Register() {
         throw new Error("ไม่สามารถสร้างบัญชีผู้ใช้ได้");
       }
 
-      // --- 2. บันทึกรูปภาพไปยัง Supabase Storage ---
+      // บันทึกรูปภาพไปยัง Supabase Storage
       let image_url = "";
       if (image_file) {
         const new_image_file_name = `${authData.user.id}-${Date.now()}-${image_file.name}`;
 
         // อัปโหลดรูปภาพไปยัง Supabase Storage ชื่อ bucket "user_avatars"
         const { error: uploadError } = await supabase.storage
-          .from("user_avatars") //  ตรวจสอบว่าชื่อ bucket นี้ถูกต้อง
+          .from("user_avatars")
           .upload(new_image_file_name, image_file);
         
         if (uploadError) {
@@ -72,25 +70,23 @@ export default function Register() {
           image_url = data.publicUrl;
         }
       }
-      // --- สิ้นสุดส่วน Database (Storage) ---
 
       
-      // --- 3. บันทึกข้อมูลลงในตาราง 'profiles' (ตาม schema ที่ให้มา) ---
+      // บันทึกข้อมูลลงในตาราง 'profiles' 
       const { error: insertError } = await supabase.from("profiles").insert({
-        id: authData.user.id,        // <-- [สำคัญ] เชื่อมโยงกับ auth.users.id
-        full_name: fullName,       // <-- [แก้ไข] ตรงกับ schema
-        gender: gender,            // <-- ตรงกับ schema
-        profile_pic_url: image_url, // <-- [แก้ไข] ตรงกับ schema
+        id: authData.user.id, 
+        full_name: fullName,    
+        gender: gender,         
+        profile_pic_url: image_url,
       });
 
       if (insertError) {
         throw new Error(`Insert Error: ${insertError.message}`);
       }
-      // --- สิ้นสุดส่วน Database (Table) ---
       
       alert("ลงทะเบียนและบันทึกข้อมูลเรียบร้อย!");
       
-      // รีเซ็ตฟอร์ม (ย้ายไปไว้ใน try หลังสุด)
+      // รีเซ็ตฟอร์ม
       setFullName("");
       setEmail("");
       setPassword("");
@@ -101,40 +97,31 @@ export default function Register() {
       // เปลี่ยนหน้าไป /login
       window.location.href = '/Login'; 
 
-    // --- ⬇️ [แก้ไข] ตรงนี้ ---
-    } catch (err: unknown) { // 1. เปลี่ยนจาก any เป็น unknown
+    } catch (err: unknown) {
       
-      let errorMessage = "เกิดข้อผิดพลาดที่ไม่คาดคิด"; // 2. สร้างข้อความ error เริ่มต้น
+      let errorMessage = "เกิดข้อผิดพลาดที่ไม่คาดคิด";
 
-      // 3. ตรวจสอบว่า err เป็น Error object จริงๆ หรือไม่
       if (err instanceof Error) {
-        errorMessage = err.message; // 4. ถ้าใช่, ก็ใช้ message จาก error นั้น
+        errorMessage = err.message;
       }
       
       console.error(errorMessage);
-      setError(errorMessage); // 5. แสดง errorMessage ที่ปลอดภัยแล้ว
+      setError(errorMessage);
       
-    // --- ⬆️ [แก้ไข] สิ้นสุดส่วนที่แก้ ---
     } finally {
-      setLoading(false); // หยุด loading ไม่ว่าจะสำเร็จหรือล้มเหลว
+      setLoading(false);
     }
   };
-  // --- ⬆️ [แก้ไข] สิ้นสุดส่วน handleSubmit ⬆️ ---
 
   return (
-    // ... ส่วนของ JSX (HTML) ทั้งหมดไม่ต้องแก้ไข ...
-    // (เนื้อหา JSX ของคุณเหมือนเดิม)
-    // 1. พื้นหลังหลัก (สไตล์เดียวกับหน้า Login)
     <div
       className="relative min-h-screen flex items-center justify-center p-4 text-white overflow-hidden"
       style={{ backgroundColor: '#0a0a0a' }}
     >
-      {/* 2. เอฟเฟกต์แสงสีน้ำเงินฟุ้งๆ */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
         <div className="w-[600px] h-[600px] bg-blue-900 rounded-full blur-[150px] opacity-25"></div>
       </div>
 
-      {/* 3. การ์ดสำหรับ Register (ธีมเดียวกับ Login) */}
       <div className="relative z-10 w-full max-w-md bg-gray-900/50 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-xl p-8">
         
         {/* หัวข้อ */}
@@ -145,7 +132,6 @@ export default function Register() {
           สร้างบัญชีใหม่เพื่อเริ่มต้นเส้นทางของคุณ
         </p>
 
-        {/* ฟอร์ม Register (ปรับสไตล์) */}
         <form onSubmit={handleSubmit} className="space-y-4">
           
           {/* ช่องกรอก ชื่อ-สกุล */}
@@ -271,17 +257,15 @@ export default function Register() {
             <div className="text-center">
               <p className="text-sm font-medium text-gray-300">Image Preview</p>
               <div className="relative mx-auto mt-2 h-32 w-32 overflow-hidden rounded-full border-2 border-gray-600 shadow-md">
-                {/* เปลี่ยนจาก <Image> เป็น <img> */}
                 <img
                   src={previewImage}
                   alt="Profile Preview"
-                  className="h-full w-full object-cover" // ใช้ Tailwind แทน layout="fill" objectFit="cover"
+                  className="h-full w-full object-cover"
                 />  
               </div>
             </div>
           )}
 
-          {/* แสดงข้อผิดพลาด (ถ้ามี) */}
           {error && (
             <div className="text-red-400 text-center text-sm">
               {error}
@@ -303,9 +287,8 @@ export default function Register() {
         {/* ลิงก์ไปหน้า Login */}
         <p className="text-center text-gray-400 text-sm mt-8">
           มีบัญชีอยู่แล้ว?{' '}
-          {/* เปลี่ยนจาก <Link> เป็น <a> */}
           <a
-            href="/Login" // ใช้ href สำหรับ <a>
+            href="/Login"
             className="font-medium text-blue-400 hover:text-blue-300"
           >
             เข้าสู่ระบบที่นี่

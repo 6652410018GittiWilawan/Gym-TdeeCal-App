@@ -704,7 +704,7 @@ export default function Dashboard() {
   // แต่เพื่อความแน่ใจ ใช้ non-null assertion หรือสร้าง const ใหม่
   const profile: UserProfile = userProfile;
 
-  // [คำนวณส่วนต่าง]
+  // คำนวณส่วนต่าง
   const remainingProtein = (profile.protein_g || 0) - totalProtein;
   const remainingCarbs = (profile.carb_g || 0) - totalCarbs;
   const remainingFat = (profile.fat_g || 0) - totalFat;
@@ -974,7 +974,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ... (รายการอาหาร Meal Per Day) ... */}
+          {/* รายการอาหาร Meal Per Day */}
           <aside className="w-full lg:w-80 bg-gray-900 p-4 sm:p-6 shadow-xl flex flex-col space-y-4 sm:space-y-6 overflow-hidden max-h-[50vh] lg:max-h-none">
             <div className="flex flex-col flex-1 min-h-0">
 
@@ -1040,7 +1040,7 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* ... (สรุปแคลอรีรวม) ... */}
+              {/*สรุปแคลอรีรวม*/}
               <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-700">
                 <div className="flex justify-between items-center text-base sm:text-lg font-bold">
                   <span>Total:</span>
@@ -1052,7 +1052,7 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {/* ... (โค้ด Modal เพิ่มอาหาร) ... */}
+      {/* โค้ด Modal เพิ่มอาหาร */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-gray-900 rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-[90vh] sm:max-h-[80vh]">

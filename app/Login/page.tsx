@@ -4,11 +4,10 @@ import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient'; // ⚠️ ตรวจสอบว่า Path นี้ถูกต้อง
+import { supabase } from '../../lib/supabaseClient';
 
 export default function Login() {
   const router = useRouter();
-  // ใช้ State เพื่อเก็บค่า email และ password (เหมือนเดิม)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(''); // สำหรับแสดงข้อผิดพลาด
@@ -65,8 +64,7 @@ export default function Login() {
     };
     
     checkSessionAndRedirect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array เพื่อให้ทำงานแค่ครั้งเดียว (router ไม่จำเป็นต้องใส่ใน deps)
+  }, []);
 
   // [แก้ไข] ฟังก์ชันนี้ถูกเปลี่ยนเป็น async และเชื่อมต่อ Supabase
   const handleSubmit = async (event: React.FormEvent) => {
@@ -75,7 +73,7 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    // --- [แก้ไข] เริ่มส่วนเชื่อมต่อ Supabase Database ---
+    // [แก้ไข] เริ่มส่วนเชื่อมต่อ Supabase Database
     try {
       console.log("Attempting to sign in with email:", email);
       
@@ -87,14 +85,13 @@ export default function Login() {
 
       console.log("Auth response:", { authData, authError });
 
-      // 1. ตรวจสอบว่ามี Error จากการ Auth หรือไม่
+      //  ตรวจสอบว่ามี Error จากการ Auth หรือไม่
       if (authError) {  
         console.error("Auth error:", authError);
-        // ถ้ามี Error (เช่น ใส่รหัสผิด) ให้โยน Error ไปที่ catch
         throw new Error(authError.message);
       }
 
-      // 2. ตรวจสอบว่าได้ข้อมูล User กลับมาหรือไม่
+      //  ตรวจสอบว่าได้ข้อมูล User กลับมาหรือไม่
       if (!authData) {
         console.error("No authData returned");
         throw new Error("ไม่พบข้อมูลการยืนยันตัวตน");
@@ -143,50 +140,45 @@ export default function Login() {
       if (!sessionSaved) {
         console.error("Session not saved after multiple attempts, redirecting anyway...");
       }
-      
-      // ใช้ window.location.href เพื่อให้ full page reload
-      // เมื่อ reload หน้า Supabase จะอ่าน session จาก localStorage
-      // และ client-side จะตรวจสอบ session และทำงานต่อ
       console.log("Redirecting to:", redirectTo);
       window.location.href = redirectTo;
 
     } catch (err: unknown) {
       console.error("Login Error caught:", err);
-      let errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"; // ข้อความเริ่มต้น
+      let errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
 
       if (err instanceof Error) {
         console.error("Error message:", err.message);
-        // Supabase มักจะคืนค่า "Invalid login credentials"
         if (err.message.includes("Invalid login credentials")) {
           errorMessage = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
         } else if (err.message.includes("Email not confirmed")) {
           errorMessage = "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ";
         } else {
-          errorMessage = err.message; // แสดง Error อื่นๆ ถ้ามี
+          errorMessage = err.message;
         }
       }
       
       console.error("Final error message:", errorMessage);
-      setError(errorMessage); // แสดง Error บนหน้าจอ
+      setError(errorMessage);
 
     } finally {
-      setLoading(false); // หยุด Loading เสมอ
+      setLoading(false);
       console.log("Login process finished");
     }
   };
 
   return (
-    // 1. พื้นหลังหลัก สีนี้แหละกิตติชอบ
+    //  พื้นหลังหลัก สีนี้แหละกิตติชอบ
     <div
       className="relative min-h-screen flex items-center justify-center p-4 text-white overflow-hidden"
       style={{ backgroundColor: '#0a0a0a' }}
     >
-      {/* 2. เอฟเฟกต์แสงสีน้ำเงินฟุ้งๆ อันนี้ให้bot เจนแล้วมันโดนใจ */}
+      {/*  เอฟเฟกต์แสงสีน้ำเงินฟุ้งๆ อันนี้ให้bot เจนแล้วมันโดนใจ */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
         <div className="w-[600px] h-[600px] bg-blue-900 rounded-full blur-[150px] opacity-25"></div>
       </div>
 
-      {/* 3. ไอกรอบๆ Login อะ ปุมาณนั้นๆ  */}
+      {/*  ไอกรอบๆ Login อะ ปุมาณนั้นๆ  */}
       <div className="relative z-10 w-full max-w-md bg-gray-900/50 backdrop-blur-lg border border-gray-700 rounded-2xl shadow-xl p-8">
         
         {/* หัวข้อแบบเท่ๆเลยอันนี้ใส่มั่วๆแม่งเท่เฉยมีคำคงคำคมนึกว่าสุนทรภู่54353455445545*/}
@@ -248,7 +240,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* แสดงข้อผิดพลาด (ถ้ามี) */}
           {error && (
             <div className="text-red-400 text-center text-sm">
               {error}
@@ -270,7 +261,7 @@ export default function Login() {
           <div className="mt-3">
            <Link href="/" passHref>
               <button
-                type="button" // กลับไปหน้าหลัก
+                type="button"
                 className="block w-full text-center text-gray-300 bg-transparent border border-gray-600 hover:bg-gray-700 font-bold text-lg px-8 py-3 rounded-lg transition-all duration-300"
               >
                 กลับหน้าหลัก
