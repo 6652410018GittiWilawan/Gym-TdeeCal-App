@@ -892,13 +892,13 @@ export default function Dashboard() {
                     onChange={(e) => setSelectedDay(parseInt(e.target.value))}
                     className="flex-1 sm:flex-none bg-gray-800 text-white px-3 sm:px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   >
-                    <option value={1}>จันทร์ (Day 1)</option>
-                    <option value={2}>อังคาร (Day 2)</option>
-                    <option value={3}>พุธ (Day 3)</option>
-                    <option value={4}>พฤหัสบดี (Day 4)</option>
-                    <option value={5}>ศุกร์ (Day 5)</option>
-                    <option value={6}>เสาร์ (Day 6)</option>
-                    <option value={7}>อาทิตย์ (Day 7)</option>
+                    <option value={1}>จันทร์ </option>
+                    <option value={2}>อังคาร </option>
+                    <option value={3}>พุธ </option>
+                    <option value={4}>พฤหัสบดี </option>
+                    <option value={5}>ศุกร์ </option>
+                    <option value={6}>เสาร์ </option>
+                    <option value={7}>อาทิตย์ </option>
                   </select>
                 </div>
                 {/* [ใหม่] ปุ่มดูประวัติ */}
